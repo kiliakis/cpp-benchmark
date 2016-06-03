@@ -40,12 +40,12 @@ int main()
    std::cout << "sum : " << sum << std::endl;
    std::cout << "elapsed time : " << elapsed.count() << std::endl;
    
-   // -------------- fastSin
+   // -------------- lut::fast_sin
 
    start = std::chrono::system_clock::now();
 
    for (unsigned i = 0; i < v.size(); i++)
-      res[i] = fastSin(v[i]);
+      res[i] = lut::fast_sin(v[i]);
 
    end = std::chrono::system_clock::now();
    elapsed = end - start;
@@ -53,7 +53,7 @@ int main()
    sum = 0.0;
    for (const auto &n : res)
       sum += n;
-   std::cout << "---- fastSin ----\n";
+   std::cout << "---- lut::fast_sin ----\n";
    std::cout << "sum : " << sum << std::endl;
    std::cout << "elapsed time : " << elapsed.count() << std::endl;
 
