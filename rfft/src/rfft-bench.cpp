@@ -27,7 +27,7 @@ int main(int argc, char **argv)
    //complex_vector_t v(N);
    f_vector_t v(N);
    complex_vector_t out(N / 2 + 1);
-   auto p = mymath::init_rfft(N, v.data(), out.data());
+   //auto p = mymath::init_rfft(N, v.data(), out.data());
 
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
@@ -37,7 +37,8 @@ int main(int argc, char **argv)
       }
 
       util::get_time(start);
-      mymath::run_fft(p);
+      // mymath::run_fft(p);
+      mymath::rfft(v, out, N);
       elapsed += util::time_elapsed(start);//end - start;
 
       for (const auto &z : out)
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
 
    }
 
-   mymath::destroy_fft(p);
+   //mymath::destroy_fft(p);
    std::cout << "RFFT of " << N << " elems\n";
    std::cout << "Elapsed Time : " << elapsed << " s\n";
    std::cout << "Throughput : " << (N * ITERS) / (elapsed * 1000000) << " M/s\n";

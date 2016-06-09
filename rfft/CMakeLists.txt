@@ -49,12 +49,14 @@ link_directories(/afs/cern.ch/user/k/kiliakis/opt/lib)
 # Absolutely required packages
 find_package(OpenMP REQUIRED)
 find_package(GSL REQUIRED)
+find_package(GTest REQUIRED)
+
 
 if(USE_FFTW)
-   message(STATUS "using fftw")
+   message(STATUS "Using FFTW")
    find_path(FFTW_INCLUDES fftw3.h)
    find_library(FFTW_LIBRARIES NAMES fftw3 libfftw3)
-   set(LIBRARIES "${LIBRARIES} -lfftw3")
+   set(LIBRARIES "${LIBRARIES} -lfftw3 -lfftw3_omp")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_FFTW")
    #string(CONCAT ${LIBRARIES} ${LIBRARIES} "rfftw fftw")
 endif()
@@ -74,3 +76,19 @@ foreach(src ${EXECUTABLE_FILES})
    add_executable( ${testname} ${src})
    target_link_libraries( ${testname} ${LIBRARIES})
 endforeach()
+
+
+file(GLOB TEST_SOURCES unit-tests/*.cpp)
+set(TEST_SOURCE_FILES ${TEST_SOURCES})
+
+foreach(src ${TEST_SOURCE_FILES})
+   file(RELATIVE_PATH testfile ${CMAKE_CURRENT_SOURCE_DIR} ${src})
+   string( REPLACE ".cpp" "" testname ${testfile})
+   string( REPLACE "unit-tests/" "" testname ${testname})
+   add_executable( ${testname} ${src})
+   target_link_libraries( ${testname} ${LIBRARIES} gtest)
+   add_test(${testname} ${testname})
+endforeach( src ${TEST_SOURCE_FILES})
+
+include(CTest)
+enable_testing()

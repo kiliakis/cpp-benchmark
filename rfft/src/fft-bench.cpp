@@ -24,9 +24,13 @@ int main(int argc, char **argv)
    auto elapsed = 0.0L;
    auto sum = 0.0L;
 
+   // if (not fftw_init_threads()) {
+   //    std::cerr << "Failed to initialize fftw multithreaded version\n";
+   // }
+
    complex_vector_t v(N);
    complex_vector_t out(N);
-   auto p = mymath::init_fft(N, v.data(), out.data(), FFTW_FORWARD);
+   //auto p = mymath::init_fft(N, v.data(), out.data(), FFTW_FORWARD);
 
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
@@ -36,7 +40,10 @@ int main(int argc, char **argv)
       }
 
       util::get_time(start);
-      mymath::run_fft(p);
+      //auto p = mymath::init_fft(N, v.data(), out.data(), FFTW_FORWARD);
+      //mymath::run_fft(p);
+      //mymath::destroy_fft(p);
+      mymath::fft(v, out, v.size());
       elapsed += util::time_elapsed(start);//end - start;
 
       for (const auto &z : out)
@@ -44,7 +51,8 @@ int main(int argc, char **argv)
 
    }
 
-   mymath::destroy_fft(p);
+//   mymath::destroy_fft(p);
+   //fftw_cleanup_threads();
    std::cout << "FFT of " << N << " elems\n";
    std::cout << "Elapsed Time : " << elapsed << " s\n";
    std::cout << "Throughput : " << (N * ITERS) / (elapsed * 1000000) << " M/s\n";
@@ -68,7 +76,7 @@ void parse_args(int argc, char **argv)
          UNKNOWN, 0, "", "", Arg::None,                  "USAGE: ./fft-bench [options]\n\n"
          "Options:"
       },
-      {  HELP, 0, "h", "help", Arg::None, "--help, -h  Print usage and exit." },
+      {HELP, 0, "h", "help", Arg::None, "--help, -h  Print usage and exit." },
       {N_ELEMS, 0, "n", "elems", util::Arg::Numeric, "--elems=<num>, -n <num>  Number of elems (default: 10k)" },
       {N_ITERS, 0, "i", "iters", util::Arg::Numeric, "--iters=<num>, -i <num>  Number of iterations (default: 10k)" },
       {

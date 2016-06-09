@@ -27,7 +27,7 @@ int main(int argc, char **argv)
    complex_vector_t v(N);
    //complex_vector_t out(N);
    f_vector_t out(2 * N - 2);
-   auto p = mymath::init_irfft(2 * N - 2, v.data(), out.data());
+   //auto p = mymath::init_irfft(2 * N - 2, v.data(), out.data());
 
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
@@ -37,8 +37,9 @@ int main(int argc, char **argv)
       }
 
       util::get_time(start);
-      mymath::run_fft(p);
+      //mymath::run_fft(p);
       // mymath::divide_vector_by_scalar<ftype, int>(out, 2 * (N - 1));
+      mymath::irfft(v, out);
       std::transform(out.begin(), out.end(), out.begin(),
                      std::bind2nd(std::divides<ftype>(), (2 * N - 2)));
       elapsed += util::time_elapsed(start);//end - start;
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
    }
 
 
-   mymath::destroy_fft(p);
+   //mymath::destroy_fft(p);
    std::cout << "IRFFT of " << N << " elems\n";
    std::cout << "Elapsed Time : " << elapsed << " s\n";
    std::cout << "Throughput : " << (N * ITERS) / (elapsed * 1000000) << " M/s\n";

@@ -116,7 +116,10 @@ namespace mymath {
                                     const unsigned flag = FFTW_ESTIMATE,
                                     const int threads = 1)
    {
-      fftw_plan_with_nthreads(threads);
+      if (threads > 1) {
+         fftw_init_threads();
+         fftw_plan_with_nthreads(threads);
+      }
       fftw_complex *a, *b;
       a = reinterpret_cast<fftw_complex *>(in);
       b = reinterpret_cast<fftw_complex *>(out);
@@ -132,7 +135,10 @@ namespace mymath {
                                      const int threads = 1)
 
    {
-      fftw_plan_with_nthreads(threads);
+      if (threads > 1) {
+         fftw_init_threads();
+         fftw_plan_with_nthreads(threads);
+      }
       fftw_complex *b;
       b = reinterpret_cast<fftw_complex *>(out);
       return fftw_plan_dft_r2c_1d(n, in, b, flag);
@@ -144,10 +150,14 @@ namespace mymath {
                                       const unsigned flag = FFTW_ESTIMATE,
                                       const int threads = 1)
    {
-      fftw_plan_with_nthreads(threads);
+      if (threads > 1) {
+         fftw_init_threads();
+         fftw_plan_with_nthreads(threads);
+      }
       fftw_complex *b;
       b = reinterpret_cast<fftw_complex *>(in);
       return fftw_plan_dft_c2r_1d(n, b, out, flag);
+
    }
 
    static inline void run_fft(const fftw_plan &p)
@@ -171,14 +181,21 @@ namespace mymath {
    //       if n > in.size() then input is padded with zeros
    // @out: the transformed array
 
-   static inline void rfft(f_vector_t &in, complex_vector_t &out, uint n = 0)
+   static inline void rfft(f_vector_t &in,
+                           complex_vector_t &out,
+                           uint n = 0,
+                           const uint threads = 1)
    {
       if (n == 0)
          n = in.size();
+      else
+         in.resize(n);
 
 #ifdef USE_FFTW
+      out.resize(n / 2 + 1);
+      //out.resize(n);
       auto p = mymath::init_rfft(n, in.data(), out.data(),
-                                 FFTW_ESTIMATE, 1);
+                                 FFTW_ESTIMATE, threads);
       mymath::run_fft(p);
       mymath::destroy_fft(p);
 
@@ -219,15 +236,19 @@ namespace mymath {
    //       if n > in.size() then input is padded with zeros
    // @out: the transformed array
 
-   static inline void fft(complex_vector_t &in, complex_vector_t &out, uint n = 0)
+   static inline void fft(complex_vector_t &in,
+                          complex_vector_t &out,
+                          uint n = 0,
+                          const uint threads = 1)
    {
       if (n == 0)
          n = in.size();
 
 #ifdef USE_FFTW
+      out.resize(n);
 
       auto p = mymath::init_fft(n, in.data(), out.data(), FFTW_FORWARD,
-                                FFTW_ESTIMATE, 1);
+                                FFTW_ESTIMATE, threads);
       mymath::run_fft(p);
       mymath::destroy_fft(p);
 
@@ -271,15 +292,21 @@ namespace mymath {
 //       if n > in.size() then input is padded with zeros
 // @out: the inverse Fourier transform of input data
 
-   static inline void ifft(complex_vector_t &in, complex_vector_t &out, uint n = 0)
+   static inline void ifft(complex_vector_t &in,
+                           complex_vector_t &out,
+                           uint n = 0,
+                           const uint threads = 1)
    {
       if (n == 0)
          n = in.size();
 
 #ifdef USE_FFTW
+      out.resize(n);
       auto p = mymath::init_fft(n, in.data(), out.data(), FFTW_BACKWARD,
-                                FFTW_ESTIMATE, 1);
+                                FFTW_ESTIMATE, threads);
       mymath::run_fft(p);
+      std::transform(out.begin(), out.end(), out.begin(),
+                     std::bind2nd(std::divides<complex_t>(), n));
       mymath::destroy_fft(p);
 
 #else
@@ -316,15 +343,21 @@ namespace mymath {
 // @out: irfft of input, always real
 // Missing n: size of output
 // TODO fix this one!!
-   static inline void irfft(complex_vector_t in, f_vector_t &out, uint n = 0)
+   static inline void irfft(complex_vector_t in,
+                            f_vector_t &out,
+                            uint n = 0,
+                            const uint threads = 1)
    {
+      n = (n == 0) ? 2 * (in.size() - 1) : n;
 
 #ifdef USE_FFTW
-      if (n == 0)
-         n = in.size();
+      out.resize(n);
+
       auto p = mymath::init_irfft(n, in.data(), out.data(),
-                                  FFTW_ESTIMATE, 1);
+                                  FFTW_ESTIMATE, threads);
       mymath::run_fft(p);
+      std::transform(out.begin(), out.end(), out.begin(),
+                     std::bind2nd(std::divides<ftype>(), n));
       mymath::destroy_fft(p);
 
 
@@ -334,7 +367,6 @@ namespace mymath {
       assert(in.size() > 1);
 
       uint last = in.size() - 2;
-      n = (n == 0) ? 2 * (in.size() - 1) : n;
 
       if (n == 2 * in.size() - 1) {
          last = in.size() - 1;
