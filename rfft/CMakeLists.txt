@@ -40,12 +40,12 @@ SET(LIBRARIES
    gsl
    gslcblas
    m
-   #rfftw3
-   fftw3)
+   )
 
 include_directories(include /usr/local/include)
+#link_directories(/usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64)
 link_directories(/usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64)
-
+link_directories(/afs/cern.ch/user/k/kiliakis/opt/lib)
 # Absolutely required packages
 find_package(OpenMP REQUIRED)
 find_package(GSL REQUIRED)
@@ -54,6 +54,8 @@ if(USE_FFTW)
    message(STATUS "using fftw")
    find_path(FFTW_INCLUDES fftw3.h)
    find_library(FFTW_LIBRARIES NAMES fftw3 libfftw3)
+   set(LIBRARIES "${LIBRARIES} -lfftw3")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_FFTW")
    #string(CONCAT ${LIBRARIES} ${LIBRARIES} "rfftw fftw")
 endif()
 

@@ -31,7 +31,7 @@ const unsigned PRECISION = 8;
 // switch on/off result printing
 #define PRINT_RESULTS
 
-#define USE_FFTW
+//#define USE_FFTW
 
 
 #endif /* INCLUDES_CONFIGURATION_H_ */

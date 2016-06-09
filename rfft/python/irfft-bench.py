@@ -29,7 +29,7 @@ for iter in range(ITERS):
 
     start = time.time()
 
-    out = irfft(v)
+    out = irfft(v, 2*(N-1))
 
     end = time.time()
     elapsed += end - start

@@ -39,6 +39,6 @@ for iter in range(ITERS):
 
 print "FFT of %d elems" % len(v)
 print "Elapsed Time : %.4f" % elapsed, " s"
-print "Throughput : %.3f" % ((N*ITERS/elapsed)/1000000), "M/s"
+print "Throughput : %.3f" % ((N*ITERS)/(elapsed *1000000)), "M/s"
 print "Sum : %.2e" % (sum/ITERS)
 print "\n"

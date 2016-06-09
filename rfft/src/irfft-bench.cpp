@@ -21,45 +21,41 @@ int main(int argc, char **argv)
    std::cout.precision(4);
 
    timespec start;
-   //auto start = std::chrono::system_clock::now();
-   //auto end = std::chrono::system_clock::now();
-   //std::chrono::duration<double> elapsed = end - start;
-   //auto elapsed = end - start;
    auto elapsed = 0.0L;
    auto sum = 0.0L;
 
    complex_vector_t v(N);
-   f_vector_t out;
+   //complex_vector_t out(N);
+   f_vector_t out(2 * N - 2);
+   auto p = mymath::init_irfft(2 * N - 2, v.data(), out.data());
 
    for (unsigned iter = 0; iter < ITERS; ++iter) {
-      out.clear();
 
       for (unsigned i = 0; i < v.size(); i++) {
          //float r2 = static_cast <float>(rand()) / (static_cast <float>(RAND_MAX / 100.0));
          v[i] = complex_t(i, i);
       }
 
-
-      //start = std::chrono::system_clock::now();
       util::get_time(start);
-      mymath::irfft(v, out);
-      //end = std::chrono::system_clock::now();
+      mymath::run_fft(p);
+      // mymath::divide_vector_by_scalar<ftype, int>(out, 2 * (N - 1));
+      std::transform(out.begin(), out.end(), out.begin(),
+                     std::bind2nd(std::divides<ftype>(), (2 * N - 2)));
       elapsed += util::time_elapsed(start);//end - start;
+
 
       for (const auto &z : out)
          sum += std::abs(z);
 
-
    }
-   std::cout << "IRFFT of " << v.size() << " elems\n";
-   //std::cout << "Elapsed Time : " << elapsed.count() << " s\n";
+
+
+   mymath::destroy_fft(p);
+   std::cout << "IRFFT of " << N << " elems\n";
    std::cout << "Elapsed Time : " << elapsed << " s\n";
-   //std::cout << "Elems/s : " << (N * ITERS) / (elapsed.count() * 1000000) << " M/s\n";
    std::cout << "Throughput : " << (N * ITERS) / (elapsed * 1000000) << " M/s\n";
    std::cout << "Sum : " << sum / ITERS << std::endl;
    std::cout << "\n\n";
-
-   /// ---- end ---- ///
 
    return 0;
 }
