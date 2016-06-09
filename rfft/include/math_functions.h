@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include "sin.h"
+#include <omp.h>
 #include  <cassert>
 #include "utilities.h"
 #include "configuration.h"
@@ -18,13 +19,13 @@
 #include <algorithm>
 
 
-//#ifdef USE_FFTW
+#ifdef USE_FFTW
 #include <fftw3.h>
-//#else
+#else
 #include <gsl/gsl_fft_real.h>
-//#include <gsl/gsl_fft_halfcomplex.h>
+#include <gsl/gsl_fft_halfcomplex.h>
 #include <gsl/gsl_fft_complex.h>
-//#endif
+#endif
 
 namespace mymath {
 
@@ -33,6 +34,7 @@ namespace mymath {
    {
       return vdt::fast_sin(x);
    }
+
 
    static inline ftype fast_cos(ftype x)
    {
@@ -64,30 +66,15 @@ namespace mymath {
    }
 
 
-   /*
-   template<typename T1, typename T2>
-   static inline void divide_vector_by_scalar(std::vector<T1> &v,
-         const T2 s)
-   {
-      const int n = (int) v.size();
-      #pragma omp parallel for
-      for (int i = 0; i < n; ++i) {
-         v[i] = v[i] / s;
-      }
-   }
-   */
-
    static inline void real_to_complex(const std::vector<ftype> &in,
                                       std::vector<complex_t> &out)
    {
       assert(out.empty());
       out.reserve(in.size());
-      //for (unsigned int i = 0; i < in.size(); i++) {
-      for (const auto &real : in) {
+      for (const auto &real : in)
          out.push_back(complex_t(real, 0));
-      }
-
    }
+
 
    static inline void pack_to_complex(const std::vector<ftype> &in,
                                       std::vector<complex_t> &out)
@@ -95,27 +82,9 @@ namespace mymath {
       assert(out.empty());
       assert(in.size() % 2 == 0);
       out.reserve(in.size() / 2);
-      for (unsigned int i = 0; i < in.size(); i += 2) {
+      for (unsigned int i = 0; i < in.size(); i += 2)
          out.push_back(complex_t(in[i], in[i + 1]));
-      }
-
    }
-
-   /*
-   static inline complex_vector_t pack_to_complex(const std::vector<ftype> &in)
-   {
-      complex_vector_t out;
-      out.reserve(in.size() / 2);
-      //assert(out.empty());
-      //assert(in.size() % 2 == 0);
-      //out.reserve(in.size() / 2);
-      for (unsigned int i = 0; i < in.size(); i += 2) {
-         out.push_back(complex_t(in[i], in[i + 1]));
-      }
-      return std::move(out);
-
-   }
-   */
 
 
    static inline void complex_to_real(const std::vector<complex_t> &in,
@@ -123,10 +92,8 @@ namespace mymath {
    {
       assert(out.empty());
       out.reserve(in.size());
-      for (const auto &z : in) {
+      for (const auto &z : in)
          out.push_back(z.real());
-      }
-
    }
 
    static inline void unpack_complex(const std::vector<complex_t> &in,
@@ -134,169 +101,10 @@ namespace mymath {
    {
       assert(out.empty());
       out.reserve(2 * in.size());
-      //for (unsigned int i = 0; i < in.size(); ++i) {
       for (const auto &z : in) {
-         //out[2 * i] = in[i].real();
-         //out[2 * i + 1] = in[i].imag();
          out.push_back(z.real());
          out.push_back(z.imag());
       }
-
-   }
-
-
-   // Parameters are like python's numpy.fft.rfft
-   // @in:  input data
-   // @n:   number of points to use. If n < in.size() then the input is cropped
-   //       if n > in.size() then input is padded with zeros
-   // @out: the transformed array
-
-   static inline void rfft(std::vector<ftype> in, const unsigned int n,
-                           std::vector<complex_t> &out)
-   {
-
-#ifdef USE_FFTW
-
-
-#else
-      //auto v = in;
-      //v.resize(n, 0);
-      //in.resize(n, 0.0);
-
-      gsl_fft_real_wavetable *real;
-      gsl_fft_real_workspace *work;
-
-      work = gsl_fft_real_workspace_alloc(n);
-      real = gsl_fft_real_wavetable_alloc(n);
-
-      //gsl_fft_real_transform(v.data(), 1, n, real, work);
-      gsl_fft_real_transform(in.data(), 1, n, real, work);
-
-      // unpack result into complex format
-
-      out.clear();
-      //out.reserve(v.size() / 2);
-      out.reserve(in.size() / 2);
-      // first element is real => imag is zero
-      in.insert(in.begin() + 1, 0.0);
-
-      // if n is even => last element is real
-      if (n % 2 == 0)
-         in.push_back(0.0);
-
-      //util::dump(v.data(), v.size(), "result\n");
-
-      //assert(v.size() % 2 == 0);
-
-      //pack_to_complex(v, out);
-      pack_to_complex(in, out);
-
-      gsl_fft_real_wavetable_free(real);
-      gsl_fft_real_workspace_free(work);
-
-#endif
-
-   }
-
-   /*
-
-   static inline complex_vector_t rfft(std::vector<ftype> in,
-                                       const unsigned int n)
-   {
-      //auto v = in;
-      //v.resize(n, 0);
-      //in.resize(n, 0.0);
-
-      gsl_fft_real_wavetable *real;
-      gsl_fft_real_workspace *work;
-
-      work = gsl_fft_real_workspace_alloc(n);
-      real = gsl_fft_real_wavetable_alloc(n);
-
-      //gsl_fft_real_transform(v.data(), 1, n, real, work);
-      gsl_fft_real_transform(in.data(), 1, n, real, work);
-
-      // unpack result into complex format
-
-      //out.clear();
-      //out.reserve(v.size() / 2);
-      // first element is real => imag is zero
-      complex_vector_t out;//(in.size() / 2);
-      //out.reserve(in.size() / 2);
-
-      in.insert(in.begin() + 1, 0.0);
-
-      // if n is even => last element is real
-      if (n % 2 == 0)
-         in.push_back(0.0);
-
-      //util::dump(v.data(), v.size(), "result\n");
-
-      //assert(v.size() % 2 == 0);
-
-      //pack_to_complex(v, out);
-      out = pack_to_complex(in);
-
-      gsl_fft_real_wavetable_free(real);
-      gsl_fft_real_workspace_free(work);
-      return std::move(out);
-   }
-
-
-   */
-
-
-   // Parameters are like python's numpy.fft.fft
-   // @in:  input data
-   // @n:   number of points to use. If n < in.size() then the input is cropped
-   //       if n > in.size() then input is padded with zeros
-   // @out: the transformed array
-
-   static inline void fft(std::vector<complex_t> &in, const unsigned int n,
-                          std::vector<complex_t> &out)
-   {
-#ifdef USE_FFTW
-
-      fftw_complex *a, *b;
-      fftw_plan p;
-      //a = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * n);
-      a = reinterpret_cast<fftw_complex *>(in.data());
-      b = reinterpret_cast<fftw_complex *>(out.data());
-      //b = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * n);
-      p = fftw_plan_dft_1d(n, a, b, FFTW_FORWARD, FFTW_ESTIMATE);
-
-      fftw_execute(p);
-
-      fftw_destroy_plan(p);
-
-#else
-      std::vector<ftype> v;
-      //v.resize(2 * n, 0);
-      unpack_complex(in, v);
-
-      gsl_fft_complex_wavetable *wave;
-      gsl_fft_complex_workspace *work;
-
-      wave = gsl_fft_complex_wavetable_alloc(n);
-      work = gsl_fft_complex_workspace_alloc(n);
-
-      gsl_fft_complex_forward(v.data(), 1, n, wave, work);
-
-      //printf("ok inside\n");
-
-      out.clear();
-
-      pack_to_complex(v, out);
-
-      out.resize(n, 0);
-
-      gsl_fft_complex_wavetable_free(wave);
-      //printf("ok here7\n");
-
-      gsl_fft_complex_workspace_free(work);
-      //printf("ok here8\n");
-#endif
-
    }
 
 
@@ -304,32 +112,42 @@ namespace mymath {
    static inline fftw_plan init_fft(const int n,
                                     complex_t *in,
                                     complex_t *out,
-                                    const int sign = FFTW_FORWARD)
+                                    const int sign = FFTW_FORWARD,
+                                    const unsigned flag = FFTW_ESTIMATE,
+                                    const int threads = 1)
    {
+      fftw_plan_with_nthreads(threads);
       fftw_complex *a, *b;
       a = reinterpret_cast<fftw_complex *>(in);
       b = reinterpret_cast<fftw_complex *>(out);
-      return fftw_plan_dft_1d(n, a, b, sign, FFTW_MEASURE);
+      return fftw_plan_dft_1d(n, a, b, sign, flag);
    }
 
 
 
    static inline fftw_plan init_rfft(const int n,
                                      ftype *in,
-                                     complex_t *out)
+                                     complex_t *out,
+                                     const unsigned flag = FFTW_ESTIMATE,
+                                     const int threads = 1)
+
    {
+      fftw_plan_with_nthreads(threads);
       fftw_complex *b;
       b = reinterpret_cast<fftw_complex *>(out);
-      return fftw_plan_dft_r2c_1d(n, in, b, FFTW_MEASURE);
+      return fftw_plan_dft_r2c_1d(n, in, b, flag);
    }
 
    static inline fftw_plan init_irfft(const int n,
                                       complex_t *in,
-                                      ftype *out)
+                                      ftype *out,
+                                      const unsigned flag = FFTW_ESTIMATE,
+                                      const int threads = 1)
    {
+      fftw_plan_with_nthreads(threads);
       fftw_complex *b;
       b = reinterpret_cast<fftw_complex *>(in);
-      return fftw_plan_dft_c2r_1d(n, b, out, FFTW_MEASURE);
+      return fftw_plan_dft_c2r_1d(n, b, out, flag);
    }
 
    static inline void run_fft(const fftw_plan &p)
@@ -347,25 +165,75 @@ namespace mymath {
 
 
 
-   static inline complex_vector_t fft(complex_t *in, const unsigned int n)
+   // Parameters are like python's numpy.fft.rfft
+   // @in:  input data
+   // @n:   number of points to use. If n < in.size() then the input is cropped
+   //       if n > in.size() then input is padded with zeros
+   // @out: the transformed array
+
+   static inline void rfft(f_vector_t &in, complex_vector_t &out, uint n = 0)
    {
+      if (n == 0)
+         n = in.size();
+
+#ifdef USE_FFTW
+      auto p = mymath::init_rfft(n, in.data(), out.data(),
+                                 FFTW_ESTIMATE, 1);
+      mymath::run_fft(p);
+      mymath::destroy_fft(p);
+
+#else
+      std::cerr << "Use of gsl ffts is depricated\n";
+
+
+      gsl_fft_real_wavetable *real;
+      gsl_fft_real_workspace *work;
+
+      work = gsl_fft_real_workspace_alloc(n);
+      real = gsl_fft_real_wavetable_alloc(n);
+
+      gsl_fft_real_transform(in.data(), 1, n, real, work);
+
+      out.clear();
+      out.reserve(in.size() / 2);
+      // first element is real => imag is zero
+      in.insert(in.begin() + 1, 0.0);
+
+      // if n is even => last element is real
+      if (n % 2 == 0)
+         in.push_back(0.0);
+
+      //pack_to_complex(v, out);
+      pack_to_complex(in, out);
+
+      gsl_fft_real_wavetable_free(real);
+      gsl_fft_real_workspace_free(work);
+
+#endif
+   }
+
+
+   // Parameters are like python's numpy.fft.fft
+   // @in:  input data
+   // @n:   number of points to use. If n < in.size() then the input is cropped
+   //       if n > in.size() then input is padded with zeros
+   // @out: the transformed array
+
+   static inline void fft(complex_vector_t &in, complex_vector_t &out, uint n = 0)
+   {
+      if (n == 0)
+         n = in.size();
+
 #ifdef USE_FFTW
 
-      fftw_complex *a, *b;
-      fftw_plan p;
-      complex_vector_t out(n);
-      a = reinterpret_cast<fftw_complex *>(in);
-      b = reinterpret_cast<fftw_complex *>(out.data());
-      //b = (fftw_complex *) fftw_malloc(sizeof(fftw_complex) * n);
-      p = fftw_plan_dft_1d(n, a, b, FFTW_FORWARD, FFTW_ESTIMATE);
+      auto p = mymath::init_fft(n, in.data(), out.data(), FFTW_FORWARD,
+                                FFTW_ESTIMATE, 1);
+      mymath::run_fft(p);
+      mymath::destroy_fft(p);
 
-      fftw_execute(p);
-
-      fftw_destroy_plan(p);
-
-      //return reinterpret_cast<complex_t *>(b);
-      return std::move(out);
 #else
+      std::cerr << "Use of gsl ffts is depricated\n";
+
       std::vector<ftype> v;
       //v.resize(2 * n, 0);
       unpack_complex(in, v);
@@ -391,6 +259,7 @@ namespace mymath {
 
       gsl_fft_complex_workspace_free(work);
       //printf("ok here8\n");
+
 #endif
 
    }
@@ -402,13 +271,20 @@ namespace mymath {
 //       if n > in.size() then input is padded with zeros
 // @out: the inverse Fourier transform of input data
 
-   static inline void ifft(std::vector<complex_t> &in, const unsigned int n,
-                           std::vector<complex_t> &out)
+   static inline void ifft(complex_vector_t &in, complex_vector_t &out, uint n = 0)
    {
-#ifdef USE_FFTW
+      if (n == 0)
+         n = in.size();
 
+#ifdef USE_FFTW
+      auto p = mymath::init_fft(n, in.data(), out.data(), FFTW_BACKWARD,
+                                FFTW_ESTIMATE, 1);
+      mymath::run_fft(p);
+      mymath::destroy_fft(p);
 
 #else
+      std::cerr << "Use of gsl ffts is depricated\n";
+
       std::vector<ftype> v;
       //v.resize(2 * n, 0);
 
@@ -442,10 +318,19 @@ namespace mymath {
 // TODO fix this one!!
    static inline void irfft(complex_vector_t in, f_vector_t &out, uint n = 0)
    {
+
 #ifdef USE_FFTW
+      if (n == 0)
+         n = in.size();
+      auto p = mymath::init_irfft(n, in.data(), out.data(),
+                                  FFTW_ESTIMATE, 1);
+      mymath::run_fft(p);
+      mymath::destroy_fft(p);
 
 
 #else
+      std::cerr << "Use of gsl ffts is depricated\n";
+
       assert(in.size() > 1);
 
       uint last = in.size() - 2;
