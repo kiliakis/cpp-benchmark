@@ -36,30 +36,24 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
 endif()
 
 
-SET(LIBRARIES 
-   gsl
-   gslcblas
-   m
-   )
+find_package(OpenMP REQUIRED)
+find_package(GSL REQUIRED)
+find_path(FFTW_INCLUDES fftw3.h)
+find_library(FFTW_LIBRARIES NAMES fftw3 libfftw3)
+
+
+set(LIBRARIES gsl gslcblas fftw3 m)
+
+if(USE_FFTW_OMP)
+   set(LIBRARIES ${LIBRARIES} fftw3_omp)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_FFTW_OMP")
+endif()
 
 include_directories(include /usr/local/include)
 #link_directories(/usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64)
 link_directories(/usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64)
 link_directories(/afs/cern.ch/user/k/kiliakis/opt/lib)
 # Absolutely required packages
-find_package(OpenMP REQUIRED)
-find_package(GSL REQUIRED)
-find_package(GTest REQUIRED)
-
-
-if(USE_FFTW)
-   message(STATUS "Using FFTW")
-   find_path(FFTW_INCLUDES fftw3.h)
-   find_library(FFTW_LIBRARIES NAMES fftw3 libfftw3)
-   set(LIBRARIES "${LIBRARIES} -lfftw3 -lfftw3_omp")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_FFTW")
-   #string(CONCAT ${LIBRARIES} ${LIBRARIES} "rfftw fftw")
-endif()
 
 
 
@@ -77,18 +71,3 @@ foreach(src ${EXECUTABLE_FILES})
    target_link_libraries( ${testname} ${LIBRARIES})
 endforeach()
 
-
-file(GLOB TEST_SOURCES unit-tests/*.cpp)
-set(TEST_SOURCE_FILES ${TEST_SOURCES})
-
-foreach(src ${TEST_SOURCE_FILES})
-   file(RELATIVE_PATH testfile ${CMAKE_CURRENT_SOURCE_DIR} ${src})
-   string( REPLACE ".cpp" "" testname ${testfile})
-   string( REPLACE "unit-tests/" "" testname ${testname})
-   add_executable( ${testname} ${src})
-   target_link_libraries( ${testname} ${LIBRARIES} gtest)
-   add_test(${testname} ${testname})
-endforeach( src ${TEST_SOURCE_FILES})
-
-include(CTest)
-enable_testing()

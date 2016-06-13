@@ -2,13 +2,14 @@
 #include <chrono>
 #include <vector>
 #include <cmath>
-#include "math_functions.h"
+#include "fft.h"
 #include "configuration.h"
 #include "utilities.h"
 #include "optionparser.h"
 
 unsigned N = 100000;
 unsigned ITERS = 10;
+unsigned n_threads  = 1;
 void parse_args(int argc, char **argv);
 
 int main(int argc, char **argv)
@@ -17,6 +18,8 @@ int main(int argc, char **argv)
 
    std::cout << "Num of Iterations : " << ITERS << "\n";
    std::cout << "Num of Elems/Iteration : " << N << "\n";
+   std::cout << "Num of Threads : " << n_threads << "\n";
+
    std::cout << "\n\n";
    std::cout.precision(4);
 
@@ -25,29 +28,40 @@ int main(int argc, char **argv)
    auto sum = 0.0L;
 
    complex_vector_t v(N);
+   //complex_vector_t out(N);
    complex_vector_t out(N);
-   auto p = mymath::init_fft(N, v.data(), out.data(), FFTW_BACKWARD);
+   //auto p = mymath::init_irfft(2 * N - 2, v.data(), out.data());
+   std::vector<fft::fft_plan_t> vecPlan;
+
+   for (unsigned i = 0; i < v.size(); i++) {
+      //float r2 = static_cast <float>(rand()) / (static_cast <float>(RAND_MAX / 100.0));
+      v[i] = complex_t((i * 1.0) / N, (i * 1.0) / N);
+   }
+   fft::ifft(v, out, vecPlan, N, n_threads);
 
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
-      for (unsigned i = 0; i < N; i++) {
+      for (unsigned i = 0; i < v.size(); i++) {
          //float r2 = static_cast <float>(rand()) / (static_cast <float>(RAND_MAX / 100.0));
-         v[i] = complex_t(i, i);
+         v[i] = complex_t((i * 1.0) / N, (i * 1.0) / N);
       }
-
       util::get_time(start);
-      mymath::run_fft(p);
+      fft::ifft(v, out, vecPlan, N, n_threads);
       elapsed += util::time_elapsed(start);//end - start;
+
 
       for (const auto &z : out)
          sum += std::abs(z);
 
    }
 
-   mymath::destroy_fft(p);
+
+   //mymath::destroy_fft(p);
    std::cout << "IFFT of " << N << " elems\n";
    std::cout << "Elapsed Time : " << elapsed << " s\n";
-   std::cout << "Throughput : " << (N * ITERS) / (elapsed * 1000000) << " M/s\n";
+
+   std::cerr << "Throughput : " << (N * ITERS * sizeof(complex_t)) / (elapsed * 1000000) << " MB/s\n";
+
    std::cout << "Sum : " << sum / ITERS << std::endl;
    std::cout << "\n\n";
 
@@ -60,7 +74,7 @@ void parse_args(int argc, char **argv)
    using namespace std;
    using namespace option;
 
-   enum optionIndex {UNKNOWN, HELP, N_ELEMS, N_ITERS, OPTIONS_NUM
+   enum optionIndex {UNKNOWN, HELP, N_ELEMS, N_ITERS, N_THREADS, OPTIONS_NUM
                     };
 
    const option::Descriptor usage[] = {
@@ -71,6 +85,8 @@ void parse_args(int argc, char **argv)
       {  HELP, 0, "h", "help", Arg::None, "--help, -h  Print usage and exit." },
       {N_ELEMS, 0, "n", "elems", util::Arg::Numeric, "--elems=<num>, -n <num>  Number of elems (default: 10k)" },
       {N_ITERS, 0, "i", "iters", util::Arg::Numeric, "--iters=<num>, -i <num>  Number of iterations (default: 10k)" },
+      {N_THREADS, 0, "t", "threads", util::Arg::Numeric, "--threads=<num>, -t <num>  Number of Threads (default: 1)" },
+
       {
          UNKNOWN, 0, "", "", Arg::None, "\nExamples:\n"
          "\t./ifft-bench\n"
@@ -103,6 +119,10 @@ void parse_args(int argc, char **argv)
             break;
          case N_ITERS:
             ITERS = atoi(opt.arg);
+            //fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+            break;
+         case N_THREADS:
+            n_threads = atoi(opt.arg);
             //fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
             break;
          case UNKNOWN:
