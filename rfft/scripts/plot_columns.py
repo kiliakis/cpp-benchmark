@@ -14,13 +14,13 @@ x_names = ['n_points'] * 4
 y_names = ['Throughput'] * 4
 err_name = 'Stdev'
 line_names = ['fft', 'ifft', 'rfft', 'irfft']
-image_name = images_dir+'fft-v1.png'
+image_name = images_dir+'cpp/fft/fft-v1.png'
 x_label = 'Points'
 y_label = 'Throughput [MB/s]'
 title = 'FFTs Throughput v1'
 
 x_lims = []
-y_lims = [0, 1400]
+y_lims = [0, 1600]
 
 annotate_min_flag = False
 annotate_max_flag = False

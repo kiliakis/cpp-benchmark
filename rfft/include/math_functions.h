@@ -14,18 +14,12 @@
 #include  <cassert>
 #include "utilities.h"
 #include "configuration.h"
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_errno.h>
+//#include <gsl/gsl_interp.h>
+//#include <gsl/gsl_errno.h>
 #include <algorithm>
 
 
-#ifdef USE_FFTW
 #include <fftw3.h>
-#else
-#include <gsl/gsl_fft_real.h>
-#include <gsl/gsl_fft_halfcomplex.h>
-#include <gsl/gsl_fft_complex.h>
-#endif
 
 namespace mymath {
 
@@ -65,347 +59,50 @@ namespace mymath {
       return res;
    }
 
+   /*
+   // Parameters are like python's np.interp
+   // @x: x-coordinates of the interpolated values
+   // @xp: The x-coords of the data points
+   // @fp: the y-coords of the data points
+   // @y: the interpolated values, same shape as x
+   // @left: value to return for x < xp[0]
+   // @right: value to return for x > xp[last]
+      static inline void lin_interp(const std::vector<ftype> &x, const std::vector<ftype> &xp,
+                                    const std::vector<ftype> &fp, std::vector<ftype> &y,
+                                    const ftype left = 0, const ftype right = 0)
+      {
+         //assert(y.empty());
 
-   static inline void real_to_complex(const std::vector<ftype> &in,
-                                      std::vector<complex_t> &out)
-   {
-      assert(out.empty());
-      out.reserve(in.size());
-      for (const auto &real : in)
-         out.push_back(complex_t(real, 0));
-   }
+         gsl_interp *interp =
+            gsl_interp_alloc(gsl_interp_linear, xp.size());
 
+         gsl_interp_init(interp, &xp[0], &fp[0], xp.size());
 
-   static inline void pack_to_complex(const std::vector<ftype> &in,
-                                      std::vector<complex_t> &out)
-   {
-      assert(out.empty());
-      assert(in.size() % 2 == 0);
-      out.reserve(in.size() / 2);
-      for (unsigned int i = 0; i < in.size(); i += 2)
-         out.push_back(complex_t(in[i], in[i + 1]));
-   }
+         gsl_interp_accel *acc = gsl_interp_accel_alloc();
 
+         y.resize(x.size());
+         for (uint i = 0; i < x.size(); ++i) {
+            double val;
+            if (x[i] < interp->xmin) {
+               //std::cout << "here\n";
+               val = left;
+            } else if (x[i] > interp->xmax) {
+               //std::cout << "here\n";
 
-   static inline void complex_to_real(const std::vector<complex_t> &in,
-                                      std::vector<ftype> &out)
-   {
-      assert(out.empty());
-      out.reserve(in.size());
-      for (const auto &z : in)
-         out.push_back(z.real());
-   }
+               val = right;
+            } else {
+               val = gsl_interp_eval(interp, &xp[0],
+                                     &fp[0], x[i],
+                                     acc);
+            }
+            y[i] = val;
+         }
 
-   static inline void unpack_complex(const std::vector<complex_t> &in,
-                                     std::vector<ftype> &out)
-   {
-      assert(out.empty());
-      out.reserve(2 * in.size());
-      for (const auto &z : in) {
-         out.push_back(z.real());
-         out.push_back(z.imag());
+         gsl_interp_free(interp);
+         gsl_interp_accel_free(acc);
+
       }
-   }
-
-
-#ifdef USE_FFTW
-   static inline fftw_plan init_fft(const int n,
-                                    complex_t *in,
-                                    complex_t *out,
-                                    const int sign = FFTW_FORWARD,
-                                    const unsigned flag = FFTW_ESTIMATE,
-                                    const int threads = 1)
-   {
-      if (threads > 1) {
-         fftw_init_threads();
-         fftw_plan_with_nthreads(threads);
-      }
-      fftw_complex *a, *b;
-      a = reinterpret_cast<fftw_complex *>(in);
-      b = reinterpret_cast<fftw_complex *>(out);
-      return fftw_plan_dft_1d(n, a, b, sign, flag);
-   }
-
-
-
-   static inline fftw_plan init_rfft(const int n,
-                                     ftype *in,
-                                     complex_t *out,
-                                     const unsigned flag = FFTW_ESTIMATE,
-                                     const int threads = 1)
-
-   {
-      if (threads > 1) {
-         fftw_init_threads();
-         fftw_plan_with_nthreads(threads);
-      }
-      fftw_complex *b;
-      b = reinterpret_cast<fftw_complex *>(out);
-      return fftw_plan_dft_r2c_1d(n, in, b, flag);
-   }
-
-   static inline fftw_plan init_irfft(const int n,
-                                      complex_t *in,
-                                      ftype *out,
-                                      const unsigned flag = FFTW_ESTIMATE,
-                                      const int threads = 1)
-   {
-      if (threads > 1) {
-         fftw_init_threads();
-         fftw_plan_with_nthreads(threads);
-      }
-      fftw_complex *b;
-      b = reinterpret_cast<fftw_complex *>(in);
-      return fftw_plan_dft_c2r_1d(n, b, out, flag);
-
-   }
-
-   static inline void run_fft(const fftw_plan &p)
-   {
-      fftw_execute(p);
-   }
-
-   static inline void destroy_fft(fftw_plan &p)
-   {
-      fftw_destroy_plan(p);
-   }
-
-
-#endif
-
-
-
-   // Parameters are like python's numpy.fft.rfft
-   // @in:  input data
-   // @n:   number of points to use. If n < in.size() then the input is cropped
-   //       if n > in.size() then input is padded with zeros
-   // @out: the transformed array
-
-   static inline void rfft(f_vector_t &in,
-                           complex_vector_t &out,
-                           uint n = 0,
-                           const uint threads = 1)
-   {
-      if (n == 0)
-         n = in.size();
-      else
-         in.resize(n);
-
-#ifdef USE_FFTW
-      out.resize(n / 2 + 1);
-      //out.resize(n);
-      auto p = mymath::init_rfft(n, in.data(), out.data(),
-                                 FFTW_ESTIMATE, threads);
-      mymath::run_fft(p);
-      mymath::destroy_fft(p);
-
-#else
-      std::cerr << "Use of gsl ffts is depricated\n";
-
-
-      gsl_fft_real_wavetable *real;
-      gsl_fft_real_workspace *work;
-
-      work = gsl_fft_real_workspace_alloc(n);
-      real = gsl_fft_real_wavetable_alloc(n);
-
-      gsl_fft_real_transform(in.data(), 1, n, real, work);
-
-      out.clear();
-      out.reserve(in.size() / 2);
-      // first element is real => imag is zero
-      in.insert(in.begin() + 1, 0.0);
-
-      // if n is even => last element is real
-      if (n % 2 == 0)
-         in.push_back(0.0);
-
-      //pack_to_complex(v, out);
-      pack_to_complex(in, out);
-
-      gsl_fft_real_wavetable_free(real);
-      gsl_fft_real_workspace_free(work);
-
-#endif
-   }
-
-
-   // Parameters are like python's numpy.fft.fft
-   // @in:  input data
-   // @n:   number of points to use. If n < in.size() then the input is cropped
-   //       if n > in.size() then input is padded with zeros
-   // @out: the transformed array
-
-   static inline void fft(complex_vector_t &in,
-                          complex_vector_t &out,
-                          uint n = 0,
-                          const uint threads = 1)
-   {
-      if (n == 0)
-         n = in.size();
-
-#ifdef USE_FFTW
-      out.resize(n);
-
-      auto p = mymath::init_fft(n, in.data(), out.data(), FFTW_FORWARD,
-                                FFTW_ESTIMATE, threads);
-      mymath::run_fft(p);
-      mymath::destroy_fft(p);
-
-#else
-      std::cerr << "Use of gsl ffts is depricated\n";
-
-      std::vector<ftype> v;
-      //v.resize(2 * n, 0);
-      unpack_complex(in, v);
-
-      gsl_fft_complex_wavetable *wave;
-      gsl_fft_complex_workspace *work;
-
-      wave = gsl_fft_complex_wavetable_alloc(n);
-      work = gsl_fft_complex_workspace_alloc(n);
-
-      gsl_fft_complex_forward(v.data(), 1, n, wave, work);
-
-      //printf("ok inside\n");
-
-      out.clear();
-
-      pack_to_complex(v, out);
-
-      out.resize(n, 0);
-
-      gsl_fft_complex_wavetable_free(wave);
-      //printf("ok here7\n");
-
-      gsl_fft_complex_workspace_free(work);
-      //printf("ok here8\n");
-
-#endif
-
-   }
-
-
-// Parameters are like python's numpy.fft.ifft
-// @in:  input data
-// @n:   number of points to use. If n < in.size() then the input is cropped
-//       if n > in.size() then input is padded with zeros
-// @out: the inverse Fourier transform of input data
-
-   static inline void ifft(complex_vector_t &in,
-                           complex_vector_t &out,
-                           uint n = 0,
-                           const uint threads = 1)
-   {
-      if (n == 0)
-         n = in.size();
-
-#ifdef USE_FFTW
-      out.resize(n);
-      auto p = mymath::init_fft(n, in.data(), out.data(), FFTW_BACKWARD,
-                                FFTW_ESTIMATE, threads);
-      mymath::run_fft(p);
-      std::transform(out.begin(), out.end(), out.begin(),
-                     std::bind2nd(std::divides<complex_t>(), n));
-      mymath::destroy_fft(p);
-
-#else
-      std::cerr << "Use of gsl ffts is depricated\n";
-
-      std::vector<ftype> v;
-      //v.resize(2 * n, 0);
-
-      unpack_complex(in, v);
-
-      gsl_fft_complex_wavetable *wave;
-      gsl_fft_complex_workspace *work;
-
-      work = gsl_fft_complex_workspace_alloc(n);
-      wave = gsl_fft_complex_wavetable_alloc(n);
-
-      gsl_fft_complex_inverse(v.data(), 1, n, wave, work);
-
-
-      out.clear();
-
-      pack_to_complex(v, out);
-
-      out.resize(n, 0);
-
-      gsl_fft_complex_wavetable_free(wave);
-      gsl_fft_complex_workspace_free(work);
-#endif
-   }
-
-
-// Inverse of rfft
-// @in: input vector which must be the result of a rfft
-// @out: irfft of input, always real
-// Missing n: size of output
-// TODO fix this one!!
-   static inline void irfft(complex_vector_t in,
-                            f_vector_t &out,
-                            uint n = 0,
-                            const uint threads = 1)
-   {
-      n = (n == 0) ? 2 * (in.size() - 1) : n;
-
-#ifdef USE_FFTW
-      out.resize(n);
-
-      auto p = mymath::init_irfft(n, in.data(), out.data(),
-                                  FFTW_ESTIMATE, threads);
-      mymath::run_fft(p);
-      std::transform(out.begin(), out.end(), out.begin(),
-                     std::bind2nd(std::divides<ftype>(), n));
-      mymath::destroy_fft(p);
-
-
-#else
-      std::cerr << "Use of gsl ffts is depricated\n";
-
-      assert(in.size() > 1);
-
-      uint last = in.size() - 2;
-
-      if (n == 2 * in.size() - 1) {
-         last = in.size() - 1;
-      } else if (n == 2 * (in.size() - 1)) {
-         ;
-      } else {
-         std::cerr << "[mymath::ifft] Size not supported!\n"
-                   << "[mymath::ifft] default size: " << n
-                   << " will be used\n";
-      }
-
-      for (uint i = last; i > 0; --i) {
-         in.push_back(std::conj(in[i]));
-      }
-
-      complex_vector_t temp;
-      mymath::ifft(in, n, temp);
-
-      mymath::complex_to_real(temp, out);
-#endif
-
-   }
-
-
-// Same as python's numpy.fft.rfftfreq
-// @ n: window length
-// @ d (optional) : Sample spacing
-// @return: A vector of length (n div 2) + 1 of the sample frequencies
-   static inline f_vector_t rfftfreq(const uint n, const ftype d = 1.0)
-   {
-      f_vector_t v(n / 2 + 1);
-      const ftype factor = 1.0 / (d * n);
-      #pragma omp parallel for
-      for (uint i = 0; i < v.size(); ++i) {
-         v[i] = i * factor;
-      }
-      return std::move(v);
-   }
-
+   */
 
 // Parameters are like python's np.interp
 // @x: x-coordinates of the interpolated values
@@ -415,38 +112,48 @@ namespace mymath {
 // @left: value to return for x < xp[0]
 // @right: value to return for x > xp[last]
    static inline void lin_interp(const std::vector<ftype> &x, const std::vector<ftype> &xp,
-                                 const std::vector<ftype> &fp, std::vector<ftype> &y,
-                                 const ftype left = 0, const ftype right = 0)
+                                 const std::vector<ftype> &yp, std::vector<ftype> &y,
+                                 const ftype left = 0.0, const ftype right = 0.0)
    {
-      assert(y.empty());
+      //assert(y.empty());
+      assert(xp.size() == yp.size());
 
-      gsl_interp *interp =
-         gsl_interp_alloc(gsl_interp_linear, xp.size());
+      y.resize(x.size());
 
-      gsl_interp_init(interp, &xp[0], &fp[0], xp.size());
+      const uint N = x.size();
+      //const uint M = xp.size();
+      const auto max = xp.back();
+      const auto min = xp.front();
+      const auto end = xp.end();
+      const auto begin = xp.begin();
 
-      gsl_interp_accel *acc = gsl_interp_accel_alloc();
-
-      for (uint i = 0; i < x.size(); ++i) {
-         double val;
-         if (x[i] < interp->xmin) {
-            val = left;
-         } else if (x[i] > interp->xmax) {
-            val = right;
-         } else {
-            val = gsl_interp_eval(interp, &xp[0],
-                                  &fp[0], x[i],
-                                  acc);
-         }
-         y.push_back(val);
+      uint k = 0;
+      while (x[k] < min and k < N) {
+         y[k] = left;
+         ++k;
       }
 
-      gsl_interp_free(interp);
-      gsl_interp_accel_free(acc);
+      auto j = begin + k;
 
-
+      for (uint i = k; i < N; ++i) {
+         if (x[i] > max) {
+            y[i] = right;
+            continue;
+         }
+         j = std::lower_bound(j, end, x[i]);
+         const auto pos = j - begin;
+         if (*j == x[i]) {
+            y[i] = yp[pos];
+         } else {
+            y[i] = yp[pos - 1]
+                   + (yp[pos] - yp[pos - 1])
+                   * (x[i] - xp[pos - 1])
+                   / (xp[pos] - xp[pos - 1]);
+         }
+      }
 
    }
+
 
 
 // Function to implement integration of f(x) over the interval

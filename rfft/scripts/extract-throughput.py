@@ -32,7 +32,7 @@ def extract_results(input, out):
             exe = string_between(file, '', '-bench')
             #implementation = dirs.split('/')[-2]
             for line in open(os.path.join(dirs, file), 'r'):
-                if line.strip():
+                if 'Throughput' in line:
                     temp = string_between(line, ':', 'M')
                     l.append(float(temp.strip()))
             if l:

@@ -37,12 +37,12 @@ endif()
 
 
 find_package(OpenMP REQUIRED)
-find_package(GSL REQUIRED)
+#find_package(GSL REQUIRED)
 find_path(FFTW_INCLUDES fftw3.h)
 find_library(FFTW_LIBRARIES NAMES fftw3 libfftw3)
 
 
-set(LIBRARIES gsl gslcblas fftw3 m)
+set(LIBRARIES fftw3 m)
 
 if(USE_FFTW_OMP)
    set(LIBRARIES ${LIBRARIES} fftw3_omp)
@@ -50,12 +50,10 @@ if(USE_FFTW_OMP)
 endif()
 
 include_directories(include /usr/local/include)
-#link_directories(/usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64)
+include_directories($ENV{HOME}/opt/include)  
 link_directories(/usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64)
-link_directories(/afs/cern.ch/user/k/kiliakis/opt/lib)
+link_directories("$ENV{HOME}/opt/lib")
 # Absolutely required packages
-
-
 
 
 

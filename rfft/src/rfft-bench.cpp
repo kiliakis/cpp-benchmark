@@ -31,12 +31,13 @@ int main(int argc, char **argv)
    complex_vector_t out(N / 2 + 1);
    //auto p = mymath::init_rfft(N, v.data(), out.data());
    std::vector<fft::fft_plan_t> vecPlan;
-
+   
+   
    for (unsigned i = 0; i < N; i++) {
       v[i] = (i * 1.0) / N;
    }
    fft::rfft(v, out, vecPlan, N, n_threads);
-
+   
 
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
@@ -47,6 +48,7 @@ int main(int argc, char **argv)
 
       util::get_time(start);
       fft::rfft(v, out, vecPlan, N, n_threads);
+      //fft::rfft(v, out);//, vecPlan, N, n_threads);
       elapsed += util::time_elapsed(start);//end - start;
 
       for (const auto &z : out)

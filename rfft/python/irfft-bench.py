@@ -25,7 +25,7 @@ elapsed = 0.0
 for iter in range(ITERS):
     
     for i in range(len(v)):
-        v[i] = i + i*1j
+        v[i] = (i * 1.0) / N + ((i * 1.0) / N) * 1j
 
     start = time.time()
 
@@ -38,6 +38,6 @@ for iter in range(ITERS):
 
 print "IRFFT of %d elems" % len(v)
 print "Elapsed Time : %.4f" % elapsed, " s"
-print "Throughput : %.3f" % ((N*ITERS/elapsed)/1000000), "M/s"
+print "Throughput : %.3f" % ((N*ITERS*16)/(elapsed *1000000)), "MB/s"
 print "Sum : %.2e" % (sum/ITERS)
 print "\n"

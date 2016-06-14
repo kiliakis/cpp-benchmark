@@ -32,13 +32,13 @@ int main(int argc, char **argv)
    complex_vector_t out(N);
    //auto p = mymath::init_irfft(2 * N - 2, v.data(), out.data());
    std::vector<fft::fft_plan_t> vecPlan;
-
+   
    for (unsigned i = 0; i < v.size(); i++) {
       v[i] = complex_t((i * 1.0) / N, (i * 1.0) / N);
    }
 
    fft::fft(v, out, vecPlan, N, n_threads);
-
+   
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
       for (unsigned i = 0; i < v.size(); i++) {
@@ -48,6 +48,7 @@ int main(int argc, char **argv)
 
       util::get_time(start);
       fft::fft(v, out, vecPlan, N, n_threads);
+      //fft::fft(v, out);
       elapsed += util::time_elapsed(start);//end - start;
 
 

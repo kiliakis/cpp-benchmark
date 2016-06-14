@@ -6,10 +6,10 @@ import numpy as np
 from prettytable import PrettyTable
 
 input_file = '/afs/cern.ch/work/k/kiliakis/results/csv/cpp/' +\
-            'fft/v4/fft-v4.csv'
+            'fft/v1/fft-v1.csv'
 
 output_file_prefix = '/afs/cern.ch/work/k/kiliakis/results/csv/cpp/' +\
-            'fft/v4/fft-v4'
+            'fft/v1/fft-v1'
 column_names = ['fft_type']
 postfixes = ['-']
 #x_names = ['n_threads', 'n_threads']

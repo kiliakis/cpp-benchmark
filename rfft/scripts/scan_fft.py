@@ -13,14 +13,14 @@ project_dir = '/afs/cern.ch/work/k/kiliakis/git/cpp-benchmark/rfft/'
 exe_dir = project_dir + 'build/'
 exe_list = ['./rfft-bench', './irfft-bench', './fft-bench', './ifft-bench']
 #datafiles = '/afs/cern.ch/work/k/kiliakis/workspace/BLonD-minimal-cpp/Release/'
-outfiles = '/afs/cern.ch/work/k/kiliakis/results/raw/cpp/fft/v5/'
+outfiles = '/afs/cern.ch/work/k/kiliakis/results/raw/cpp/fft/v1/'
 
 n_iterations_list = ['100']
 #['100000', '500000', '1000000']
 n_points_list = ['1000', '10000', '100000', '500000', '1000000']
 #n_points_list = ['100000']
 #['10000', '20000', '50000', '100000']
-n_threads_list = ['1']#, '2', '4', '8', '10', '14', '18', '22', '28', '32', '56']
+n_threads_list = ['1'] #['1', '2', '4', '8', '10', '14', '18', '22', '28', '32', '56']
 repeats = 5
 os.chdir(exe_dir)
 total_sims = len(n_iterations_list) * len(n_points_list) * \
