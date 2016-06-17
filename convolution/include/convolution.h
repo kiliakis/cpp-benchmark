@@ -10,33 +10,61 @@
 // Copyright (c) 2005 Song Ho Ahn
 ///////////////////////////////////////////////////////////////////////////////
 
+
 #ifndef CONVOLUTION_H
 #define CONVOLUTION_H
-
+#include "configuration.h"
 
 // linear convolution function
 // @a: first vector
 // @b: second vector
 // @return convolution of a and b
-static inline std::vector<double> convolution1(const std::vector<double> &a,
-      const std::vector<double> &b)
+static inline void convolution1(const ftype *__restrict__ signal,
+                                const uint SignalLen,
+                                const ftype *__restrict__ kernel,
+                                const uint KernelLen,
+                                ftype *__restrict__ res)
 {
-   std::vector<double> res;
-   res.resize(a.size() + b.size() - 1);
-
+   const uint size = KernelLen + SignalLen - 1;
+   
    #pragma omp parallel for
-   for (uint i = 0; i < res.size(); ++i) {
-      uint i1 = i;
-      double temp = 0;
-      for (unsigned int j = 0; j < b.size(); ++j) {
-         if (i1 >= 0 && i1 < a.size()) {
-            temp += a[i1] * b[j];
-         }
-         i1--;
-         res[i] = temp;
+   for (uint n = 0; n < size; ++n) {
+      res[n] = 0;
+      const uint kmin = (n >= KernelLen - 1) ? n - (KernelLen - 1) : 0;
+      const uint kmax = (n < SignalLen - 1) ? n : SignalLen - 1;
+
+      uint j = n - kmin;
+      for (uint k = kmin; k <= kmax; k++) {
+         res[n] += signal[k] * kernel[j];
+         --j;
       }
    }
-   return res;
+
+}
+
+
+/*
+
+double *convolution4(const double *__restrict__ Signal,
+                     const uint SignalLen,
+                     const double *__restrict__ Kernel,
+                     const uint KernelLen)
+{
+   const uint size = SignalLen + KernelLen - 1;
+   double *__restrict__ Result = (double *) malloc(
+                                    size * sizeof(double));
+
+   #pragma omp parallel for
+   for (uint n = 0; n < size; ++n) {
+      //Result[n] = 0;
+      const uint kmin = (n >= KernelLen - 1) ? n - (KernelLen - 1) : 0;
+      const uint kmax = (n < SignalLen - 1) ? n : SignalLen - 1;
+
+      for (uint k = kmin; k <= kmax; ++k) {
+         Result[n] += Signal[k] * Kernel[n - k];
+      }
+   }
+   return Result;
 }
 
 
@@ -107,28 +135,9 @@ double *convolution3(double *A, double *B, int lenA, int lenB, int *lenC)
    return (C);
 }
 
+*/
 
-double *convolution4(const double *__restrict__ Signal,
-                     const uint SignalLen,
-                     const double *__restrict__ Kernel,
-                     const uint KernelLen)
-{
-   const uint size = SignalLen + KernelLen - 1;
-   double *__restrict__ Result = (double *) malloc(
-                                    size * sizeof(double));
 
-   #pragma omp parallel for
-   for (uint n = 0; n < size; ++n) {
-      //Result[n] = 0;
-      const uint kmin = (n >= KernelLen - 1) ? n - (KernelLen - 1) : 0;
-      const uint kmax = (n < SignalLen - 1) ? n : SignalLen - 1;
-
-      for (uint k = kmin; k <= kmax; ++k) {
-         Result[n] += Signal[k] * Kernel[n - k];
-      }
-   }
-   return Result;
-}
 
 /*
 void convolve(Workspace &ws, double *src, double *kernel)

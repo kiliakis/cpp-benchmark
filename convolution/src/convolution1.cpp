@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 
    f_vector_t in(N);
    f_vector_t kernel(N / 2);
-   f_vector_t out;
+   f_vector_t out(N + N / 2 - 1);
 
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
@@ -46,7 +46,9 @@ int main(int argc, char **argv)
       }
 
       util::get_time(start);
-      out = convolution1(in, kernel);
+      convolution1(in.data(), in.size(),
+                   kernel.data(), kernel.size(),
+                   out.data());
       elapsed += util::time_elapsed(start);//end - start;
 
       for (const auto &z : out)
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
    std::cout << "Convolution1 of " << N << " elems\n";
    std::cout << "Elapsed Time : " << elapsed << " s\n";
 
-   std::cerr << "Throughput : " << (N * ITERS *8) / (elapsed * 1000000) << " MB/s\n";
+   std::cerr << "Throughput : " << (N * ITERS * 8) / (elapsed * 1000000) << " MB/s\n";
 
    std::cout << "Sum : " << sum / ITERS << std::endl;
    std::cout << "\n\n";

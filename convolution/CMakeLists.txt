@@ -35,8 +35,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
       set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
 endif()
 
-
+# Magic to set GCC-specific compile flags (to turn on optimisation).
+#set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -msse3 -mavx")
+#add_definitions( -DSSE3 )
+#add_definitions( -DAVX )
 find_package(OpenMP REQUIRED)
+
 #find_package(GSL REQUIRED)
 find_path(FFTW_INCLUDES fftw3.h)
 find_library(FFTW_LIBRARIES NAMES fftw3 libfftw3)
