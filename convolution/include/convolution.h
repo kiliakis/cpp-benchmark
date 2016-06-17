@@ -16,9 +16,6 @@
 #include "configuration.h"
 
 // linear convolution function
-// @a: first vector
-// @b: second vector
-// @return convolution of a and b
 static inline void convolution1(const ftype *__restrict__ signal,
                                 const uint SignalLen,
                                 const ftype *__restrict__ kernel,
@@ -26,17 +23,16 @@ static inline void convolution1(const ftype *__restrict__ signal,
                                 ftype *__restrict__ res)
 {
    const uint size = KernelLen + SignalLen - 1;
-   
+
    #pragma omp parallel for
    for (uint n = 0; n < size; ++n) {
       res[n] = 0;
       const uint kmin = (n >= KernelLen - 1) ? n - (KernelLen - 1) : 0;
       const uint kmax = (n < SignalLen - 1) ? n : SignalLen - 1;
-
-      uint j = n - kmin;
+      //uint j = n - kmin;
       for (uint k = kmin; k <= kmax; k++) {
-         res[n] += signal[k] * kernel[j];
-         --j;
+         res[n] += signal[k] * kernel[n - k];
+         //--j;
       }
    }
 
