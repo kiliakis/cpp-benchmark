@@ -14,6 +14,9 @@
 #ifndef CONVOLUTION_H
 #define CONVOLUTION_H
 #include "configuration.h"
+#include "fft.h"
+
+static std::vector<fft::fft_plan_t> vecPlan;
 
 // linear convolution function
 static inline void convolution1(const ftype *__restrict__ signal,
@@ -35,11 +38,29 @@ static inline void convolution1(const ftype *__restrict__ signal,
          //--j;
       }
    }
+   
+}
+
+
+static inline void convolution5(f_vector_t signal,
+                                f_vector_t kernel,
+                                f_vector_t &res)
+{
+   complex_vector_t v1;//(signal.size());
+   complex_vector_t v2;//(kernel.size());
+   const uint size = signal.size() + kernel.size() -1;
+   fft::rfft(signal, v1, vecPlan, size);
+   fft::rfft(kernel, v2, vecPlan, size);
+   
+   std::transform(v1.begin(), v1.end(), 
+                  v2.begin(), v1.begin(), 
+                  std::multiplies<complex_t>());
+   
+   fft::irfft(v1, res, vecPlan, size);
 
 }
 
 
-/*
 
 double *convolution4(const double *__restrict__ Signal,
                      const uint SignalLen,
@@ -131,7 +152,7 @@ double *convolution3(double *A, double *B, int lenA, int lenB, int *lenC)
    return (C);
 }
 
-*/
+
 
 
 
