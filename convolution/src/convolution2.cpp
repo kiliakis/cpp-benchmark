@@ -1,8 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
-#include <cmath>
-#include "fft.h"
+#include "convolution.h"
 #include "configuration.h"
 #include "utilities.h"
 #include "optionparser.h"
@@ -30,40 +29,39 @@ int main(int argc, char **argv)
    auto elapsed = 0.0L;
    auto sum = 0.0L;
 
-   complex_vector_t v(N / 2 + 1);
-   //complex_vector_t out(N);
-   f_vector_t out(N);
-   //auto p = mymath::init_irfft(2 * N - 2, v.data(), out.data());
-   std::vector<fft::fft_plan_t> vecPlan;
-   
-   for (unsigned i = 0; i < v.size(); i++) {
-      v[i] = complex_t((i * 1.0) / N, (i * 1.0) / N);
-   }
-   fft::irfft(v, out, vecPlan, 0, n_threads);
-   
+   f_vector_t in(N);
+   f_vector_t kernel(N / 2);
+
    for (unsigned iter = 0; iter < ITERS; ++iter) {
 
-      for (unsigned i = 0; i < v.size(); i++) {
-         //float r2 = static_cast <float>(rand()) / (static_cast <float>(RAND_MAX / 100.0));
-         v[i] = complex_t((i * 1.0) / N, (i * 1.0) / N);
+      for (unsigned i = 0; i < in.size(); i++) {
+         //auto r2 = static_cast <double>(rand()) / (static_cast <double>(RAND_MAX / 100.0));
+         in[i] = (i * 1.0) / N;
       }
-      util::get_time(start);
-      fft::irfft(v, out, vecPlan, 0, n_threads);
-      //fft::irfft(v, out, 0);//, vecPlan, 0, n_threads);
-      elapsed += util::time_elapsed(start);//end - start;
 
+      for (unsigned i = 0; i < kernel.size(); i++) {
+         //auto r2 = static_cast <double>(rand()) / (static_cast <double>(RAND_MAX / 100.0));
+         kernel[i] = (i * 1.0) / (10 * N);
+      }
+
+      util::get_time(start);
+      f_vector_t out(N + N / 2 - 1);
+      if (not convolution2(in.data(), out.data(),
+                           in.size(), kernel.data(),
+                           kernel.size())) {
+         std::cout << "There was an error!\n";
+      }
+      elapsed += util::time_elapsed(start);//end - start;
 
       for (const auto &z : out)
          sum += std::abs(z);
 
    }
 
-
-   //mymath::destroy_fft(p);
-   std::cout << "IRFFT of " << N << " elems\n";
+   std::cout << "Convolution2 of " << N << " elems\n";
    std::cout << "Elapsed Time : " << elapsed << " s\n";
 
-   std::cerr << "Throughput : " << ((N / 2 + 1) * ITERS * sizeof(complex_t)) / (elapsed * 1000000) << " MB/s\n";
+   std::cerr << "Throughput : " << (N * ITERS * 8) / (elapsed * 1000000) << " MB/s\n";
 
    std::cout << "Sum : " << sum / ITERS << std::endl;
    std::cout << "\n\n";
@@ -82,7 +80,7 @@ void parse_args(int argc, char **argv)
 
    const option::Descriptor usage[] = {
       {
-         UNKNOWN, 0, "", "", Arg::None,                  "USAGE: ./irfft-bench [options]\n\n"
+         UNKNOWN, 0, "", "", Arg::None,                  "USAGE: ./convolution2 [options]\n\n"
          "Options:"
       },
       {  HELP, 0, "h", "help", Arg::None, "--help, -h  Print usage and exit." },
@@ -92,11 +90,12 @@ void parse_args(int argc, char **argv)
 
       {
          UNKNOWN, 0, "", "", Arg::None, "\nExamples:\n"
-         "\t./irfft-bench\n"
-         "\t./irfft-bench -n 1000\n"
+         "\t./convolution2\n"
+         "\t./convolution2 -n 1000\n"
       },
       {0, 0, 0, 0, 0, 0}
    };
+
 
    argc -= (argc > 0);
    argv += (argc > 0); // skip program name argv[0] if present
@@ -124,7 +123,7 @@ void parse_args(int argc, char **argv)
             ITERS = atoi(opt.arg);
             //fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
             break;
-         case  N_THREADS:
+         case N_THREADS:
             n_threads = atoi(opt.arg);
             //fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
             break;
@@ -134,6 +133,7 @@ void parse_args(int argc, char **argv)
             break;
       }
    }
+
 
 }
 

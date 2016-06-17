@@ -6,6 +6,7 @@
 #include "configuration.h"
 #include "utilities.h"
 #include "optionparser.h"
+#include <omp.h>
 
 unsigned N = 100000;
 unsigned ITERS = 10;
@@ -21,6 +22,7 @@ int main(int argc, char **argv)
    std::cout << "Num of Threads : " << n_threads << "\n";
    std::cout << "\n\n";
    std::cout.precision(4);
+   omp_set_num_threads(n_threads);
 
    timespec start;
    auto elapsed = 0.0L;
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
 
       util::get_time(start);
       fft::rfft(v, out, vecPlan, N, n_threads);
-      //fft::rfft(v, out);//, vecPlan, N, n_threads);
+      //fft::rfft(v, out, N);//, vecPlan, N, n_threads);
       elapsed += util::time_elapsed(start);//end - start;
 
       for (const auto &z : out)

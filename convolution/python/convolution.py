@@ -2,7 +2,6 @@ from __future__ import division
 import numpy as np
 import time
 import os
-from numpy.fft import *
 
 
 N = 100000
@@ -18,26 +17,30 @@ print "Number of Iters: %d" % ITERS
 print "Number of Elems/Iteration: %d" % N
 print "\n"
 
-v = np.zeros(N/2+1) + 0j
+v = np.zeros(N)
+kernel = np.zeros(N/2)
 sum = 0.0
 elapsed = 0.0
 
 for iter in range(ITERS):
     
     for i in range(len(v)):
-        v[i] = (i * 1.0) / N + ((i * 1.0) / N) * 1j
+        v[i] = (i * 1.0) / N
+
+    for i in range(len(kernel)):
+        kernel[i] = (i * 1.0) / (10.0 * N)
 
     start = time.time()
 
-    out = irfft(v, N)
+    out = np.convolve(v, kernel)
 
     end = time.time()
     elapsed += end - start
 
     sum += np.sum(np.abs(out))
 
-print "IRFFT of %d elems" % len(v)
+print "Convolution of %d elems" % len(v)
 print "Elapsed Time : %.4f" % elapsed, " s"
-print "Throughput : %.3f" % (((N/2+1)*ITERS*16)/(elapsed *1000000)), "MB/s"
+print "Throughput : %.3f" % ((N*ITERS*8)/(elapsed *1000000)), "MB/s"
 print "Sum : %.2e" % (sum/ITERS)
 print "\n"

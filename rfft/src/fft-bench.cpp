@@ -6,6 +6,8 @@
 #include "configuration.h"
 #include "utilities.h"
 #include "optionparser.h"
+#include <omp.h>
+
 
 unsigned N = 100000;
 unsigned ITERS = 10;
@@ -19,6 +21,7 @@ int main(int argc, char **argv)
    std::cout << "Num of Iterations : " << ITERS << "\n";
    std::cout << "Num of Elems/Iteration : " << N << "\n";
    std::cout << "Num of Threads : " << n_threads << "\n";
+   omp_set_num_threads(n_threads);
 
    std::cout << "\n\n";
    std::cout.precision(4);
@@ -31,6 +34,7 @@ int main(int argc, char **argv)
    //complex_vector_t out(N);
    complex_vector_t out(N);
    //auto p = mymath::init_irfft(2 * N - 2, v.data(), out.data());
+   
    std::vector<fft::fft_plan_t> vecPlan;
    
    for (unsigned i = 0; i < v.size(); i++) {
@@ -48,7 +52,7 @@ int main(int argc, char **argv)
 
       util::get_time(start);
       fft::fft(v, out, vecPlan, N, n_threads);
-      //fft::fft(v, out);
+      //fft::fft(v, out, N);
       elapsed += util::time_elapsed(start);//end - start;
 
 
