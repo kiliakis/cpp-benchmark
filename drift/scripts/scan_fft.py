@@ -14,8 +14,8 @@ exe_list = ['./drift1', './drift2']#, './fft-bench', './ifft-bench']
 outfiles = project_dir + 'results/v1/'
 
 n_iterations_list = ['100']
-n_points_list = ['1000000', '4000000', '16000000', '64000000', '256000000']
-n_threads_list = ['1', '4', '8', '14', '28', '42'] #['1', '2', '4', '8', '10', '14', '18', '22', '28', '32', '56']
+n_points_list = ['1000000', '4000000', '16000000', '64000000']
+n_threads_list = ['1', '4', '8', '14', '28', '56'] #['1', '2', '4', '8', '10', '14', '18', '22', '28', '32', '56']
 repeats = 5
 os.chdir(exe_dir)
 total_sims = len(n_iterations_list) * len(n_points_list) * \

@@ -56,13 +56,16 @@ void drift(double * __restrict__ beam_dt,
         const double eta2 = eta_two * coeff * coeff * coeff;
 
         if ( alpha_order == 1 )
+            #pragma omp parallel for
             for ( i = 0; i < n_macroparticles; i++ )
                 beam_dt[i] += T * (1. / (1. - eta0 * beam_dE[i]) - 1.);
         else if (alpha_order == 2)
+            #pragma omp parallel for
             for ( i = 0; i < n_macroparticles; i++ )
                 beam_dt[i] += T * (1. / (1. - eta0 * beam_dE[i]
                                          - eta1 * beam_dE[i] * beam_dE[i]) - 1.);
         else
+            #pragma omp parallel for
             for ( i = 0; i < n_macroparticles; i++ )
                 beam_dt[i] += T * (1. / (1. - eta0 * beam_dE[i]
                                          - eta1 * beam_dE[i] * beam_dE[i]
