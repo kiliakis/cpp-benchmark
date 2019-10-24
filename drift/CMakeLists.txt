@@ -19,10 +19,10 @@ if(NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=gnu++11 -fopenmp -DUSE_OMP -Wall -pedantic -fno-rtti -Wunused -g")
+set(CMAKE_CXX_FLAGS "-std=gnu++11 -fopenmp -march=native -DUSE_OMP -Wall -pedantic -fno-rtti -Wunused")
 set(CMAKE_CXX_FLAGS "-fopt-info-vec=report.txt")
 set(CMAKE_CXX_FLAGS_DEBUG   "-g3") #-fsanitize=address")
-set(CMAKE_CXX_FLAGS_RELEASE "-march=native")
+# set(CMAKE_CXX_FLAGS_RELEASE "-march=native")
 # set(LIBRARIES m)
 
 CHECK_CXX_COMPILER_FLAG(-Ofast COMPILER_HAS_OFAST)
