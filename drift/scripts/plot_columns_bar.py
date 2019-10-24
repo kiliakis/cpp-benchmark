@@ -10,7 +10,7 @@ images_dir = this_directory + '../results/plots/'
 
 csv_file = res_dir + 'v1.csv'
 
-image_name = images_dir+'v1.pdf'
+image_name = images_dir+'v1-bar.pdf'
 x_label = 'Number of Points [1e6]'
 y_label = 'Throughput [MPoints/s]'
 title = 'Drift benchmark'
@@ -58,12 +58,12 @@ if __name__ == '__main__':
     header, data = data[0], data[1:]
     dic = {}
     for r in data:
-        if r[0] not in dic:
-            dic[r[0]] = {}
-        if r[1] not in dic[r[0]]:
-            dic[r[0]][r[1]] = {'x': [], 'y': []}
-        dic[r[0]][r[1]]['x'].append(int(r[2]))
-        dic[r[0]][r[1]]['y'].append(float(r[5]))
+        if r[1] not in dic:
+            dic[r[1]] = {}
+        if r[0] not in dic[r[1]]:
+            dic[r[1]][r[0]] = {'x': [], 'y': []}
+        dic[r[1]][r[0]]['x'].append(int(r[2]))
+        dic[r[1]][r[0]]['y'].append(float(r[5]))
 
     plt.figure(figsize=(10, 6))
 
@@ -78,27 +78,37 @@ if __name__ == '__main__':
     plt.ylabel(y_label)
     # plt.tick_params(labelright=True)
     plt.title(title)
-    plt.xscale('log')
+    # plt.xscale('log')
     plt.grid(axis='both')
     config = {
         'legacy': {'marker': 'o', 'ls': '-'},
         'new': {'marker': 's', 'ls': '--'}
     }
-
-    for bench, v1 in dic.items():
-        colors = ['blue', 'orange', 'green', 'red']
-        for thr, xy in v1.items():
-            if thr in ['4', '56']:
-                continue
+    pos = 0.
+    step = 1. / (8+1)
+    width = step
+    colors = ['xkcd:light blue', 'xkcd:light blue', 'xkcd:light brown','xkcd:light brown', 'xkcd:light green','xkcd:light green', 'red', 'red']
+    hatches = ['', 'xxx']
+    labels = {'legacy': 'old', 'new':'new'}
+    for thr, v1 in dic.items():
+        if thr in ['4', '56']:
+            continue
+        i = 0
+        
+        for bench, xy in v1.items():
             x = np.array(xy['x'])//1000000
             y = np.array(xy['y'])
             idx = np.argsort(x)
             x, y = x[idx], y[idx]
-            plt.plot(x, y, lw=2, color=colors.pop(),
-                     marker=config[bench]['marker'],
-                     ls=config[bench]['ls'],
-                     label='{}-{}thr'.format(bench, thr))
-    plt.xticks(x, x)
+            plt.bar(np.arange(len(x))+pos, y, width=.9 * width, color=colors.pop(),
+                     # marker=config[bench]['marker'],
+                     # ls=config[bench]['ls'],
+                     edgecolor='black',lw=1.5,
+                     hatch=hatches[i % 2],
+                     label='{}-{}w'.format(labels[bench], thr))
+            pos += step
+            i+=1
+    plt.xticks(np.arange(len(x)) + 3.5*step, x)
 
     # for file, x_name, y_name, line_name in zip(csv_files, x_names, y_names, line_names):
     #     l = import_results(file)
@@ -123,7 +133,7 @@ if __name__ == '__main__':
 
     plt.tight_layout()
     plt.legend(loc='upper right', fancybox=True, framealpha=0.5,
-               ncol=2)
+               ncol=4, columnspacing=1)
     plt.savefig(image_name, bbox_inches='tight', dpi=600)
     plt.show()
     plt.close()
