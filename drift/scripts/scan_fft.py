@@ -35,9 +35,9 @@ for n_iterations in n_iterations_list:
                 stderr = open(outfiles + name+'.stderr', 'w')
                 for i in range(0, repeats):
                     exe_args = [exe,
-                                '-n' + n_points,
-                                '-t' + n_threads,
-                                '-i' + n_iterations
+                                '-p' + n_points,
+                                '-m' + n_threads,
+                                '-t' + n_iterations
                                 ]
                     print(n_iterations, n_points, n_threads, exe, i)
                     #start = time.time()
