@@ -15,8 +15,8 @@
 #define CONVOLUTION_H
 #include "configuration.h"
 #include "fft.h"
+#include <omp.h>
 
-static std::vector<fft::fft_plan_t> vecPlan;
 
 // linear convolution function
 static inline void convolution1(const ftype *__restrict__ signal,
@@ -49,14 +49,14 @@ static inline void convolution5(f_vector_t signal,
    complex_vector_t v1;//(signal.size());
    complex_vector_t v2;//(kernel.size());
    const uint size = signal.size() + kernel.size() -1;
-   fft::rfft(signal, v1, vecPlan, size);
-   fft::rfft(kernel, v2, vecPlan, size);
+   fft::rfft(signal, v1, size, omp_get_max_threads());
+   fft::rfft(kernel, v2, size, omp_get_max_threads());
    
    std::transform(v1.begin(), v1.end(), 
                   v2.begin(), v1.begin(), 
                   std::multiplies<complex_t>());
    
-   fft::irfft(v1, res, vecPlan, size);
+   fft::irfft(v1, res, size, omp_get_max_threads());
 
 }
 

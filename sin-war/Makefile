@@ -1,11 +1,11 @@
 CC=g++
 CFLAGS=-std=c++11 -Ofast -Wall
 LDFLAGS=
-
+HOME=/afs/cern.ch/user/k/kiliakis/opt/lib
 all: sin-war sin-LUT
 
 sin-war: sin-war.cpp
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -L${HOME} -lvdt -o $@ $<
 
 sin-LUT: sin-LUT.cpp
 	$(CC) $(CFLAGS) -o $@ $<
