@@ -15,12 +15,12 @@ endif()
 
 
 
-if(NOT CMAKE_BUILD_TYPE)
-   set(CMAKE_BUILD_TYPE "Release")
-endif()
+# if(NOT CMAKE_BUILD_TYPE)
+#    set(CMAKE_BUILD_TYPE "Release")
+# endif()
 
-set(CMAKE_CXX_FLAGS "-std=gnu++11 -fopenmp -march=native -DUSE_OMP -Wall -pedantic -fno-rtti -Wunused")
-set(CMAKE_CXX_FLAGS "-fopt-info-vec=report.txt")
+set(CMAKE_CXX_FLAGS "-std=gnu++11 -fopenmp -O3 -ffast-math -march=native -DUSE_OMP -Wall -pedantic -fno-rtti -Wunused")
+# set(CMAKE_CXX_FLAGS "-fopt-info-vec=report.txt")
 set(CMAKE_CXX_FLAGS_DEBUG   "-g3") #-fsanitize=address")
 # set(CMAKE_CXX_FLAGS_RELEASE "-march=native")
 # set(LIBRARIES m)
@@ -33,12 +33,12 @@ else()
 endif()
 
 #set(CMAKE_BUILD_TYPE Release)
-if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
-   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES Intel)
-   # set(LIBRARIES "mkl_intel_ilp64" "mkl_intel_thread" "mkl_core" "iomp5" "pthread" "m" "dl")
-   # set(LIBRARIES "mkl_intel_ilp64" "mkl_tbb_thread" "mkl_core" "tbb" "stdc++" "pthread" "m" "dl")
-endif()
+# if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+#    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
+# elseif(CMAKE_CXX_COMPILER_ID MATCHES Intel)
+#    # set(LIBRARIES "mkl_intel_ilp64" "mkl_intel_thread" "mkl_core" "iomp5" "pthread" "m" "dl")
+#    # set(LIBRARIES "mkl_intel_ilp64" "mkl_tbb_thread" "mkl_core" "tbb" "stdc++" "pthread" "m" "dl")
+# endif()
 
 # Magic to set GCC-specific compile flags (to turn on optimisation).
 #set(CMAKE_CXX_FLAGS " ${CMAKE_CXX_FLAGS} -msse3 -mavx")
