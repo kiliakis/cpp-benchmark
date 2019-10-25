@@ -18,6 +18,7 @@ Project website: http://blond.web.cern.ch/
 #include <random>
 #include <chrono>
 #include <string.h>
+#include <cmath>
 
 using namespace std;
 
@@ -32,10 +33,11 @@ void drift(double * __restrict__ beam_dt,
            const double T0, const double length_ratio,
            const double alpha_order, const double eta_zero,
            const double eta_one, const double eta_two,
+           const double alpha_zero, const double alpha_one,
+           const double alpha_two,
            const double beta, const double energy,
            const int n_macroparticles) {
 
-    int i;
     double T = T0 * length_ratio;
 
     if ( strcmp (solver, "simple") == 0 )
@@ -46,9 +48,8 @@ void drift(double * __restrict__ beam_dt,
             beam_dt[i] += T * coeff * beam_dE[i];
     }
 
-    else
+    else if ( strcmp (solver, "legacy") == 0 )
     {
-        // printf("alpha_order %f\n", alpha_order);
         const double coeff = 1. / (beta * beta * energy);
         const double eta0 = eta_zero * coeff;
         const double eta1 = eta_one * coeff * coeff;
@@ -56,22 +57,49 @@ void drift(double * __restrict__ beam_dt,
 
         if ( alpha_order == 1 )
             #pragma omp parallel for
-            for ( i = 0; i < n_macroparticles; i++ )
+            for (int i = 0; i < n_macroparticles; i++ )
                 beam_dt[i] += T * (1. / (1. - eta0 * beam_dE[i]) - 1.);
         else if (alpha_order == 2)
             #pragma omp parallel for
-            for ( i = 0; i < n_macroparticles; i++ )
+            for (int i = 0; i < n_macroparticles; i++ )
                 beam_dt[i] += T * (1. / (1. - eta0 * beam_dE[i]
                                          - eta1 * beam_dE[i] * beam_dE[i]) - 1.);
         else
             #pragma omp parallel for
-            for ( i = 0; i < n_macroparticles; i++ )
+            for (int i = 0; i < n_macroparticles; i++ )
                 beam_dt[i] += T * (1. / (1. - eta0 * beam_dE[i]
                                          - eta1 * beam_dE[i] * beam_dE[i]
                                          - eta2 * beam_dE[i] * beam_dE[i] * beam_dE[i]) - 1.);
     }
 
+    else
+    {
+
+        const double invbetasq = 1. / (beta * beta);
+        const double invenesq = 1. / (energy * energy);
+        const double invene = 1. / energy;
+        // double beam_delta;
+
+        #pragma omp parallel for
+        for (int i = 0; i < n_macroparticles; i++ )
+        {
+
+            const double beam_delta = sqrt(1. + invbetasq *
+                                   (beam_dE[i] * beam_dE[i] * invenesq + 2.*beam_dE[i] * invenesq)) - 1.;
+            
+            const double beam_delta_sq = beam_delta * beam_delta;
+
+            beam_dt[i] += T * ((1. + alpha_zero * beam_delta +
+                                alpha_one * (beam_delta_sq) +
+                                alpha_two * (beam_delta_sq * beam_delta)) *
+                               (1. + beam_dE[i] * invene) / (1. + beam_delta) - 1.);
+
+        }
+
+    }
+
 }
+
 
 
 
@@ -90,11 +118,17 @@ int main(int argc, char *argv[])
 
     default_random_engine gen;
     uniform_real_distribution<double> d(0.0, 1.0);
+    // apply_f_in_place(dt, [d, gen](double x) {return d(gen);});
+    // apply_f_in_place(dE, [d, gen](double x) {return d(gen);});
+    // apply_f_in_place(omega_rf, [d, gen](double x) {return d(gen);});
+    // apply_f_in_place(voltage, [d, gen](double x) {return d(gen);});
+    // apply_f_in_place(phi_rf, [d, gen](double x) {return d(gen);});
 
     for (int i = 0; i < N_p; i++) {
         dt[i] = 10e-6 * d(gen);
         dE[i] = 10e6 * d(gen);
     }
+
     const char *solver = "full";
     const double T0 = d(gen);
     const double length_ratio = 1.0;
@@ -117,14 +151,17 @@ int main(int argc, char *argv[])
     for (int i = 0; i < N_t; i++) {
         drift(dt.data(), dE.data(), solver, T0,
               length_ratio, alpha_order, eta_zero, eta_one,
-              eta_two, beta, energy, N_p);
+              eta_two, alpha_zero, alpha_one, alpha_two,
+              beta, energy, N_p);
     }
 
+
+
     elapsed_time = chrono::system_clock::now() - start;
-    sum = mymath::sum(dt);
+    sum = mymath::sum(dE);
 
     double throughput = N_t * N_p / elapsed_time.count() / 1e6;
-    cout << "Drift legacy\n";
+    cout << "Drift new\n";
     cout << "Elapsed time: " << elapsed_time.count() << " sec\n";
     cout << "Throughput: " << throughput << " MP/sec\n";
     cout << "Throughput/thread: " << throughput / N_threads << " MP/sec\n";
@@ -132,6 +169,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
 
 void parse_args(int argc, char **argv)
 {
@@ -150,7 +188,7 @@ void parse_args(int argc, char **argv)
 
     const option::Descriptor usage[] = {
         {
-            UNKNOWN, 0, "", "", Arg::None, "USAGE: ./drift1 [options]\n\n"
+            UNKNOWN, 0, "", "", Arg::None, "USAGE: ./drift2 [options]\n\n"
             "Options:"
         },
         {
@@ -177,8 +215,8 @@ void parse_args(int argc, char **argv)
         {
             UNKNOWN, 0, "", "", Arg::None,
             "\nExamples:\n"
-            "\t./drift1\n"
-            "\t./drift1 -t 1000 -p 10000 -m 4\n"
+            "\t./drift2\n"
+            "\t./drift2 -t 1000 -p 10000 -m 4\n"
         },
         {0, 0, 0, 0, 0, 0}
     };
