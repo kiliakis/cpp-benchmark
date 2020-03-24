@@ -61,16 +61,15 @@ extern "C" void synchrotron_radiation_full(double * __restrict__ beam_dE, const 
     std::hash<std::thread::id> hash;
     // Quantum excitation constant
     const double const_quantum_exc = 2.0 * sigma_dE / sqrt(tau_z) * energy;
-    const double const_synch_rad = 2.0 / tau_z;
 
     // Random number generator for the quantum excitation term
     for (int j=0; j<n_kicks; j++){
         // Compute synchrotron radiation damping term
         start_t = chrono::system_clock::now();
-        // synchrotron_radiation(beam_dE, U0, n_macroparticles, tau_z, 1);
+        synchrotron_radiation(beam_dE, U0, n_macroparticles, tau_z, 1);
         synch_rad_d += chrono::system_clock::now() - start_t; 
 
-        // start_t = chrono::system_clock::now();
+        start_t = chrono::system_clock::now();
         // Re-calculate the random (Gaussian) number array
         #pragma omp parallel
         {
@@ -88,7 +87,7 @@ extern "C" void synchrotron_radiation_full(double * __restrict__ beam_dE, const 
         // Applies the quantum excitation term
         #pragma omp parallel for
         for (int i = 0; i < n_macroparticles; i++){
-            beam_dE[i] += const_quantum_exc * random_array[i] - U0 - const_synch_rad * beam_dE[i];
+            beam_dE[i] += const_quantum_exc * random_array[i];
         }
         quantum_d += chrono::system_clock::now() - start_t; 
     }

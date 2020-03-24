@@ -9,11 +9,11 @@
 #include <math.h>
 #include <stdlib.h>
 #include <thread>
-// #include <boost/random.hpp>
-// #include <boost/random/normal_distribution.hpp>
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
 
 using namespace std;
-string prog_name = "synch_rad4";
+string prog_name = "synch_rad6";
 long int N_t = 1;
 long int N_p = 100000;
 int N_threads = 1;
@@ -64,7 +64,7 @@ extern "C" void synchrotron_radiation_full(double * __restrict__ beam_dE, const 
     const double const_synch_rad = 2.0 / tau_z;
 
     // Random number generator for the quantum excitation term
-    for (int j=0; j<n_kicks; j++) {
+    for (int j=0; j<n_kicks; j++){
         // Compute synchrotron radiation damping term
         // start_t = chrono::system_clock::now();
         // synchrotron_radiation(beam_dE, U0, n_macroparticles, tau_z, 1);
@@ -74,13 +74,13 @@ extern "C" void synchrotron_radiation_full(double * __restrict__ beam_dE, const 
         // Re-calculate the random (Gaussian) number array
         #pragma omp parallel
         {
-            static __thread mt19937_64 *gen = nullptr;
-            if(!gen) gen = new mt19937_64(clock() + hash(this_thread::get_id()));    
-            static __thread std::normal_distribution<> dist(0.0, 1.0);
+            static __thread boost::mt19937_64 *gen = nullptr;
+            if(!gen) gen = new boost::mt19937_64(clock() + hash(this_thread::get_id()));    
+            static __thread boost::normal_distribution<> dist(0.0, 1.0);
             #pragma omp for
-            for (int i = 0; i < n_macroparticles; i++) {
-                beam_dE[i] += const_quantum_exc * dist(*gen) - U0 - const_synch_rad * beam_dE[i];
+            for (int i = 0; i < n_macroparticles; i++){
                 // random_array[i] = dist(*gen);
+                beam_dE[i] += const_quantum_exc * dist(*gen) - U0 - const_synch_rad * beam_dE[i];
             }
         }
         rand_gen_d += chrono::system_clock::now() - start_t; 
@@ -89,7 +89,6 @@ extern "C" void synchrotron_radiation_full(double * __restrict__ beam_dE, const 
         // Applies the quantum excitation term
         // #pragma omp parallel for
         // for (int i = 0; i < n_macroparticles; i++){
-        //     beam_dE[i] += const_quantum_exc * random_array[i] - U0 - const_synch_rad * beam_dE[i];
         // }
         // quantum_d += chrono::system_clock::now() - start_t; 
     }
