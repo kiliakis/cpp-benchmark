@@ -19,6 +19,7 @@ Project website: http://blond.web.cern.ch/
 #include <chrono>
 #include <string.h>
 #include <cmath>
+#include <blond/sqrt.h>
 
 using namespace std;
 
@@ -84,8 +85,8 @@ void drift(double * __restrict__ beam_dt,
         for (int i = 0; i < n_macroparticles; i++ )
         {
 
-            const double beam_delta = sqrt(1. + invbetasq *
-                                   (beam_dE[i] * beam_dE[i] * invenesq + 2.*beam_dE[i] * invenesq)) - 1.;
+            const double beam_delta = vdt::fast_isqrt_general(1. + invbetasq *
+                                   (beam_dE[i] * beam_dE[i] * invenesq + 2.*beam_dE[i] * invenesq), 1) - 1.;
             
             const double beam_delta_sq = beam_delta * beam_delta;
 
@@ -158,7 +159,7 @@ int main(int argc, char *argv[])
 
 
     elapsed_time = chrono::system_clock::now() - start;
-    sum = mymath::sum(dE);
+    sum = mymath::sum(dt);
 
     double throughput = N_t * N_p / elapsed_time.count() / 1e6;
     cout << "Drift new\n";

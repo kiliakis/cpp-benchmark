@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 
 
     elapsed_time = chrono::system_clock::now() - start;
-    sum = mymath::sum(dE);
+    sum = mymath::sum(dt);
 
     double throughput = N_t * N_p / elapsed_time.count() / 1e6;
     cout << "Drift new\n";
