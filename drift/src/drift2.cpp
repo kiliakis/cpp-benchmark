@@ -24,6 +24,7 @@ using namespace std;
 long int N_t = 1;
 long int N_p = 100000;
 int N_threads = 1;
+double alpha_order = 2;
 
 
 void drift(double * __restrict__ beam_dt,
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])
     cout << "Number of turns: " <<  N_t << "\n";
     cout << "Number of points: " << N_p << "\n";
     cout << "Number of openmp threads: " <<  N_threads << "\n";
+    cout << "Alpha order: " << alpha_order << "\n";
 
     vector<double> dE(N_p), dt(N_p);
     // vector<double> omega_rf(N_rf), voltage(N_rf), phi_rf(N_rf);
@@ -129,13 +131,13 @@ int main(int argc, char *argv[])
     const char *solver = "full";
     const double T0 = d(gen);
     const double length_ratio = 1.0;
-    const double alpha_order = 3;
+    // const double alpha_order = 3;
     const double eta_zero = d(gen);
-    const double eta_one = d(gen);
-    const double eta_two = d(gen);
+    const double eta_one = d(gen) * (alpha_order > 0);
+    const double eta_two = d(gen) * (alpha_order > 1);
     const double alpha_zero = d(gen);
-    const double alpha_one = d(gen);
-    const double alpha_two = d(gen);
+    const double alpha_one = d(gen) * (alpha_order > 0);
+    const double alpha_two = d(gen) * (alpha_order > 1);
     const double beta = d(gen);
     const double energy = d(gen);
 
@@ -179,7 +181,7 @@ void parse_args(int argc, char **argv)
         N_THREADS,
         N_TURNS,
         N_PARTICLES,
-        // N_RF,
+        N_ALPHA,
         OPTIONS_NUM
     };
 
@@ -196,6 +198,11 @@ void parse_args(int argc, char **argv)
             N_TURNS, 0, "t", "turns", util::Arg::Numeric,
             "  --turns=<num>,       -t <num>  Number of turns (default: 500)"
         },
+        {
+            N_ALPHA, 0, "a", "alpha", util::Arg::Numeric,
+            "  --alpha=<num>,       -a <num>  Alpha order (default: 3)"
+        },
+
         // {
         //     N_RF, 0, "r", "rf_sections", util::Arg::Numeric,
         //     "  --rf_sections=<num>,       -r <num>  Number of rf_sections (default: 1)"
@@ -240,10 +247,10 @@ void parse_args(int argc, char **argv)
             N_t = atoi(opt.arg);
             // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
             break;
-        // case N_RF:
-        //     N_rf = atoi(opt.arg);
-        //     // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
-        //     break;
+        case N_ALPHA:
+            alpha_order = atoi(opt.arg);
+            // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);
+            break;
         case N_THREADS:
             N_threads = atoi(opt.arg);
             // fprintf(stdout, "--numeric with argument '%s'\n", opt.arg);

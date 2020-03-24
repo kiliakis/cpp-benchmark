@@ -8,12 +8,15 @@ this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 res_dir = this_directory + '../results/csvfiles/'
 images_dir = this_directory + '../results/plots/'
 
-csv_file = res_dir + 'v1.csv'
+csv_file = res_dir + 'v2.csv'
 
-image_name = images_dir+'v1-bar.pdf'
+image_name = images_dir+'v2-bar.pdf'
 x_label = 'Number of Points [1e6]'
 y_label = 'Throughput [MPoints/s]'
 title = 'Drift benchmark'
+dict_keys = ['n_threads', 'alpha']
+x_key = 'n_points'
+y_key = 'throughput(mp/sec)'
 
 x_lims = []
 y_lims = [0, 1600]
@@ -55,15 +58,18 @@ def plot(x, y, label, xerr=None, yerr=None):
 
 if __name__ == '__main__':
     data = import_results(csv_file)
-    header, data = data[0], data[1:]
+    h, data = list(data[0]), data[1:]
     dic = {}
     for r in data:
-        if r[1] not in dic:
-            dic[r[1]] = {}
-        if r[0] not in dic[r[1]]:
-            dic[r[1]][r[0]] = {'x': [], 'y': []}
-        dic[r[1]][r[0]]['x'].append(int(r[2]))
-        dic[r[1]][r[0]]['y'].append(float(r[5]))
+        if r[h.index(dict_keys[0])] not in dic:
+            dic[r[h.index(dict_keys[0])]] = {}
+        if r[h.index(dict_keys[1])] not in dic[r[h.index(dict_keys[0])]]:
+            dic[r[h.index(dict_keys[0])]][r[h.index(dict_keys[1])]] = {
+                'x': [], 'y': []}
+        dic[r[h.index(dict_keys[0])]][r[h.index(dict_keys[1])]]['x'].append(
+            int(r[h.index(x_key)]))
+        dic[r[h.index(dict_keys[0])]][r[h.index(dict_keys[1])]]['y'].append(
+            float(r[h.index(y_key)]))
 
     plt.figure(figsize=(10, 6))
 
@@ -81,34 +87,41 @@ if __name__ == '__main__':
     # plt.xscale('log')
     plt.grid(axis='both')
     config = {
+        '0': {'marker': 'o', 'ls': '-'},
+        '1': {'marker': 'o', 'ls': '-'},
+        '2': {'marker': 'o', 'ls': '-'},
         'legacy': {'marker': 'o', 'ls': '-'},
         'new': {'marker': 's', 'ls': '--'}
     }
+    colors = ['xkcd:light blue', 'xkcd:light blue', 'xkcd:light blue',
+              'xkcd:light green', 'xkcd:light green', 'xkcd:light green',
+              # 'xkcd:light orange', 'xkcd:light orange', 
+              'xkcd:light brown', 'xkcd:light brown', 'xkcd:light brown', 
+              'xkcd:light red', 'xkcd:light red', 'xkcd:light red']
     pos = 0.
-    step = 1. / (8+1)
+    step = 1. / (len(colors)+1)
     width = step
-    colors = ['xkcd:light blue', 'xkcd:light blue', 'xkcd:light brown','xkcd:light brown', 'xkcd:light green','xkcd:light green', 'red', 'red']
-    hatches = ['', 'xxx']
-    labels = {'legacy': 'old', 'new':'new'}
+    hatches = ['', 'xxx', 'ooo']
+    labels = {'0': 'a0', '1': 'a1', '2': 'a2'}
     for thr, v1 in dic.items():
         if thr in ['4', '56']:
             continue
         i = 0
-        
-        for bench, xy in v1.items():
+
+        for k2, xy in v1.items():
             x = np.array(xy['x'])//1000000
             y = np.array(xy['y'])
             idx = np.argsort(x)
             x, y = x[idx], y[idx]
             plt.bar(np.arange(len(x))+pos, y, width=.9 * width, color=colors.pop(),
-                     # marker=config[bench]['marker'],
-                     # ls=config[bench]['ls'],
-                     edgecolor='black',lw=1.5,
-                     hatch=hatches[i % 2],
-                     label='{}-{}w'.format(labels[bench], thr))
+                    # marker=config[k2]['marker'],
+                    # ls=config[k2]['ls'],
+                    edgecolor='black', lw=1.5,
+                    hatch=hatches[i % len(v1)],
+                    label='{}-{}w'.format(labels[k2], thr))
             pos += step
-            i+=1
-    plt.xticks(np.arange(len(x)) + 3.5*step, x)
+            i += 1
+    plt.xticks(np.arange(len(x)) + 5.5*step, x)
 
     # for file, x_name, y_name, line_name in zip(csv_files, x_names, y_names, line_names):
     #     l = import_results(file)
@@ -132,7 +145,7 @@ if __name__ == '__main__':
     #         annotate_max(x, y)
 
     plt.tight_layout()
-    plt.legend(loc='upper right', fancybox=True, framealpha=0.5,
+    plt.legend(loc='upper left', fancybox=True, framealpha=0.5,
                ncol=4, columnspacing=1)
     plt.savefig(image_name, bbox_inches='tight', dpi=600)
     plt.show()

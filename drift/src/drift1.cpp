@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     const char *solver = "full";
     const double T0 = d(gen);
     const double length_ratio = 1.0;
-    const double alpha_order = 3;
+    const double alpha_order = 0;
     const double eta_zero = d(gen);
     const double eta_one = d(gen);
     const double eta_two = d(gen);

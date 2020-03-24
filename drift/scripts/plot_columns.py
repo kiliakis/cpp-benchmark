@@ -8,12 +8,15 @@ this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 res_dir = this_directory + '../results/csvfiles/'
 images_dir = this_directory + '../results/plots/'
 
-csv_file = res_dir + 'v1.csv'
+csv_file = res_dir + 'v2.csv'
 
-image_name = images_dir+'v1.pdf'
+image_name = images_dir+'v2.pdf'
 x_label = 'Number of Points [1e6]'
 y_label = 'Throughput [MPoints/s]'
 title = 'Drift benchmark'
+dict_keys = ['alpha', 'n_threads']
+x_key = 'n_points'
+y_key = 'throughput(mp/sec)'
 
 x_lims = []
 y_lims = [0, 1600]
@@ -55,15 +58,15 @@ def plot(x, y, label, xerr=None, yerr=None):
 
 if __name__ == '__main__':
     data = import_results(csv_file)
-    header, data = data[0], data[1:]
+    header, data = list(data[0]), data[1:]
     dic = {}
     for r in data:
-        if r[0] not in dic:
-            dic[r[0]] = {}
-        if r[1] not in dic[r[0]]:
-            dic[r[0]][r[1]] = {'x': [], 'y': []}
-        dic[r[0]][r[1]]['x'].append(int(r[2]))
-        dic[r[0]][r[1]]['y'].append(float(r[5]))
+        if r[header.index(dict_keys[0])] not in dic:
+            dic[r[header.index(dict_keys[0])]] = {}
+        if r[header.index(dict_keys[1])] not in dic[r[header.index(dict_keys[0])]]:
+            dic[r[header.index(dict_keys[0])]][r[header.index(dict_keys[1])]] = {'x': [], 'y': []}
+        dic[r[header.index(dict_keys[0])]][r[header.index(dict_keys[1])]]['x'].append(int(r[header.index(x_key)]))
+        dic[r[header.index(dict_keys[0])]][r[header.index(dict_keys[1])]]['y'].append(float(r[header.index(y_key)]))
 
     plt.figure(figsize=(10, 6))
 
@@ -81,6 +84,9 @@ if __name__ == '__main__':
     plt.xscale('log')
     plt.grid(axis='both')
     config = {
+        '0': {'marker': 'o', 'ls': '-'},
+        '1': {'marker': 'o', 'ls': '-'},
+        '2': {'marker': 'o', 'ls': '-'},
         'legacy': {'marker': 'o', 'ls': '-'},
         'new': {'marker': 's', 'ls': '--'}
     }

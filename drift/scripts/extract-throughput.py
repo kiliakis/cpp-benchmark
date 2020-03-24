@@ -18,16 +18,16 @@ def string_between(string, before, after):
 
 
 def extract_results(input, out):
-    header = ['bench', 'n_threads', 'n_points', 'n_iterations',
+    header = ['bench', 'n_threads', 'n_points', 'n_iterations', 'alpha',
               'time(s)', 'throughput(mp/sec)', 'throughput/th', 't_std', 'th_std', 'th/th_std']
     records = []
-    regexp = 'Number of turns:\s(\d+)\sNumber of points:\s(\d+)\sNumber of openmp threads:\s(\d+)\sDrift\s(\w+)\sElapsed time:\s(.*)\ssec\sThroughput:\s(.*)\sMP/sec\sThroughput/thread:\s(.*)\sMP/sec'
+    regexp = 'Number of turns:\s(\d+)\sNumber of points:\s(\d+)\sNumber of openmp threads:\s(\d+)\sAlpha order:\s(\d+)\sDrift\s(\w+)\sElapsed time:\s(.*)\ssec\sThroughput:\s(.*)\sMP/sec\sThroughput/thread:\s(.*)\sMP/sec'
     regexp = re.compile(regexp)
     for dirs, subdirs, files in os.walk(input):
         for file in files:
             if ('.stdout' not in file):
                 continue
-            # threads = string_between(file, 'n_thr', '.')
+            # alpha = string_between(file, 'n_a', 'n_i')
             # points = string_between(file, 'n_p', 'n_i')
             # iters = string_between(file, 'n_i', 'n_thr')
             # exe = string_between(file, '', '_np')
@@ -36,18 +36,19 @@ def extract_results(input, out):
             match = regexp.findall(lines)
             # print(len(match), match[0])
             if match:
-                assert(len(match[0]) == 7)
+                assert(len(match[0]) == 8)
                 l = []
                 turns = match[0][0]
                 points = match[0][1]
                 threads = match[0][2]
-                bench = match[0][3]
+                alpha = match[0][3]
+                bench = match[0][4]
                 for m in match:
-                    l.append(m[4:])
+                    l.append(m[5:])
                 l = np.array(l, float)
                 avg = np.round(np.mean(l, axis=0), 3)
                 std = np.round(np.std(l, axis=0), 3)
-                records.append([bench, threads, points, turns] + list(avg) + list(std))
+                records.append([bench, threads, points, turns, alpha] + list(avg) + list(std))
 
             # for line in open(os.path.join(dirs, file), 'r'):
             #     if 'Elapsed' in line:
@@ -66,7 +67,7 @@ def extract_results(input, out):
             #         print("The previous file has %.2f %% error" % percent)
             # else:
             #     print("I found an empty file called %s" % file)
-    records.sort(key=lambda a: (a[0], int(a[1]), int(a[2]), int(a[3])))
+    records.sort(key=lambda a: (a[0], int(a[1]), int(a[2]), int(a[3]), int(a[4])))
     # t = PrettyTable(header)
     # t.align = 'l'
     # t.border = False

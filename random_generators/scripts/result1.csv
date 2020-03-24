@@ -1,0 +1,6 @@
+ rand_type                n_threads  n_points  n_iterations  Throughput  Stdev         
+ boost_random             1          1000000   10            224.6906    4.8188598029  
+ gauss_from_rand          1          1000000   10            78.5124     1.69693895588 
+ gauss_from_rng           1          1000000   10            91.73072    1.00817556854 
+ rng64-bench              1          1000000   10            1692.826    96.7682351291 
+ std_normal_distribution  1          1000000   10            91.33654    3.08147288533 
