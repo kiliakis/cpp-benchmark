@@ -39,7 +39,7 @@ n_iterations_list = ['1000']
 n_points_list = ['1000000']
 # n_points_list = ['16000000']
 # n_threads_list = ['1', '4', '8', '14', '28']
-n_threads_list = ['28']
+n_threads_list = ['4']
 
 repeats = 1
 os.chdir(exe_dir)
