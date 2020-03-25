@@ -13,7 +13,7 @@
 #include <boost/random/normal_distribution.hpp>
 
 using namespace std;
-string prog_name = "synch_rad8";
+string prog_name = "synch_rad9";
 long int N_t = 1;
 long int N_p = 100000;
 int N_threads = 1;
@@ -77,7 +77,9 @@ extern "C" void synchrotron_radiation_full(double * __restrict__ beam_dE, const 
             static __thread boost::mt19937_64 *gen = nullptr;
             if(!gen) gen = new boost::mt19937_64(clock() + hash(this_thread::get_id()));    
             static __thread boost::normal_distribution<> dist(0.0, 1.0);
-            double temp[STEP];
+            static __thread double *temp = nullptr;
+            if(!temp) temp = new double[STEP];
+            // double temp[STEP];
             #pragma omp for
             for (int i = 0; i < n_macroparticles; i+= STEP) {
                 const int loop_count = n_macroparticles - i > STEP ?
