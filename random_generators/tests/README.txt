@@ -35,3 +35,5 @@ all implementations
 
 Then a plot to compare scalability:
 of all boost implementations, and all std implementations
+
+Okay I can use the one with 16M particles + the table
