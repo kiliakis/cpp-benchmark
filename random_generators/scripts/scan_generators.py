@@ -15,23 +15,23 @@ exe_list = [
     # 'synch_rad1',
     # 'synch_rad2',
     # 'synch_rad3',
-    # 'synch_rad4',
+    'synch_rad4',
     # 'synch_rad5',
-    # 'synch_rad6',
+    'synch_rad6',
     # 'synch_rad7',
     # 'synch_rad8',
-    'synch_rad9'
+    # 'synch_rad9'
     ]
 
 #datafiles = '/afs/cern.ch/work/k/kiliakis/workspace/BLonD-minimal-cpp/Release/'
 outfiles = project_dir + 'results/raw/synch_rad_test/'
 
 n_iterations_list = ['100']
-# n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000']
-n_points_list = ['16000000']
+n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000']
+# n_points_list = ['16000000']
 n_threads_list = ['1', '4', '8', '14', '28']
 
-repeats = 5
+repeats = 10
 os.chdir(exe_dir)
 total_sims = len(n_iterations_list) * len(n_points_list) * \
     len(n_threads_list) * len(exe_list) * repeats

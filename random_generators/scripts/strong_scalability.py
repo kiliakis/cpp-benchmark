@@ -58,6 +58,7 @@ label_d = {
     'synch_rad6': 'boost, par, single',
     'synch_rad7': 'std, par, single, vec',
     'synch_rad8': 'boost, par, single, vec',
+    'synch_rad9': 'boost, par, single, vec, opt',
 }
 
 lconfig = {
@@ -68,7 +69,8 @@ lconfig = {
             ],
             'lines': {
                 'exe': ['synch_rad1', 'synch_rad2', 'synch_rad3', 'synch_rad4',
-                        'synch_rad5', 'synch_rad6', 'synch_rad7', 'synch_rad8'],
+                        'synch_rad5', 'synch_rad6', 'synch_rad7', 'synch_rad8',
+                        'synch_rad9'],
                 'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000'],
             }
         },
@@ -77,7 +79,7 @@ lconfig = {
 
 tabconf = {
     'exe': ['synch_rad1', 'synch_rad2', 'synch_rad3', 'synch_rad4',
-            'synch_rad5', 'synch_rad6', 'synch_rad7', 'synch_rad8'],
+            'synch_rad5', 'synch_rad6', 'synch_rad7', 'synch_rad8', 'synch_rad9'],
     'n_points': '16000000',
     'outfile': '{}/test1/table1.csv'
 }
@@ -88,6 +90,7 @@ plotconf = {
             # 'synch_rad3', ,
             # 'synch_rad5',
             'synch_rad6',
+            'synch_rad9',
             # 'synch_rad8'
             ],
     'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000'],

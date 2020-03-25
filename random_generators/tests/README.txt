@@ -22,6 +22,9 @@ boost, parallel dist gen, single loop
 synch_rad8
 boost, parallel dist gen, single loop, vectorized
 
+synch_rad9
+boost, parallel dist gen, single loop, vectorized, only one mem alloc per thread
+
 
 Which are interesting to run?
 all of them 
