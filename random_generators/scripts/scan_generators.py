@@ -24,10 +24,10 @@ exe_dir = project_dir + 'build/exe/'
     # ]
 
 exe_list = [
-    'random_synch_rad1',
-    'random_synch_rad2',
-    'random_synch_rad4',
-    'random_synch_rad6',
+    'randomtest_synch_rad1',
+    'randomtest_synch_rad2',
+    'randomtest_synch_rad4',
+    'randomtest_synch_rad6',
     ]
 
 
