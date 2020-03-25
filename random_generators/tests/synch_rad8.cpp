@@ -70,7 +70,7 @@ extern "C" void synchrotron_radiation_full(double * __restrict__ beam_dE, const 
         // synchrotron_radiation(beam_dE, U0, n_macroparticles, tau_z, 1);
         // synch_rad_d += chrono::system_clock::now() - start_t; 
 
-        // start_t = chrono::system_clock::now();
+        start_t = chrono::system_clock::now();
         // Re-calculate the random (Gaussian) number array
         #pragma omp parallel
         {

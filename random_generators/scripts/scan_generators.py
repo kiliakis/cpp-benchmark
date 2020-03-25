@@ -12,11 +12,11 @@ print('\nCpp simulation\n')
 project_dir = '/afs/cern.ch/work/k/kiliakis/git/cpp-benchmark/random_generators/'
 exe_dir = project_dir + 'build/exe/'
 exe_list = [
-    'synch_rad1',
-    'synch_rad2',
-    'synch_rad3',
+    # 'synch_rad1',
+    # 'synch_rad2',
+    # 'synch_rad3',
     'synch_rad4',
-    'synch_rad5',
+    # 'synch_rad5',
     'synch_rad6',
     'synch_rad7',
     'synch_rad8']
@@ -26,7 +26,7 @@ outfiles = project_dir + 'results/raw/synch_rad_test/'
 
 n_iterations_list = ['100']
 #['100000', '500000', '1000000']
-n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000', '64000000']
+n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000']
 #n_points_list = ['100000']
 #['10000', '20000', '50000', '100000']
 # ['1', '2', '4', '8', '10', '14', '18', '22', '28', '32', '56']
