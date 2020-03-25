@@ -65,7 +65,7 @@ lconfig = {
     'figures': {
         'strong': {
             'files': [
-                '{}/csv/synch_rad_test1.csv',
+                '{}/csv/synch_rad_test2.csv',
             ],
             'lines': {
                 'exe': ['synch_rad1', 'synch_rad2', 'synch_rad3', 'synch_rad4',
@@ -81,7 +81,7 @@ tabconf = {
     'exe': ['synch_rad1', 'synch_rad2', 'synch_rad3', 'synch_rad4',
             'synch_rad5', 'synch_rad6', 'synch_rad7', 'synch_rad8', 'synch_rad9'],
     'n_points': '16000000',
-    'outfile': '{}/test1/table1.csv'
+    'outfile': '{}/test1/table2.csv'
 }
 
 plotconf = {
@@ -90,17 +90,17 @@ plotconf = {
             # 'synch_rad3', ,
             # 'synch_rad5',
             'synch_rad6',
-            'synch_rad9',
+            # 'synch_rad9',
             # 'synch_rad8'
             ],
-    'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000'],
-    # 'n_points': ['1000000', '16000000', '32000000'],
-    'outfiles': ['{}/test1/n_p{}scalability1.png',
-                 '{}/test1/n_p{}scalability1.pdf'],
+    # 'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000'],
+    'n_points': ['16000000'],
+    'outfiles': ['{}/test1/n_p{}scalability2.png',
+                 '{}/test1/n_p{}scalability2.pdf'],
     'ylim': [0, 36],
     # 'xlim': [, 36],
     'yticks': [4, 8, 12, 16, 20, 24, 28, 32],
-    'figsize': [5, 4],
+    'figsize': [5, 3],
     'hatches': ['', '', 'xx'],
     'markers': ['x', 'o', '^'],
     'colors': ['xkcd:red', 'xkcd:green', 'xkcd:blue'],
@@ -122,8 +122,8 @@ plotconf = {
     'ticks': {'fontsize': 10},
     'fontsize': 10,
     'legend': {
-        'loc': 'upper left', 'ncol': 1, 'handlelength': 1.5, 'fancybox': False,
-        'framealpha': .9, 'fontsize': 10, 'labelspacing': 0.2, 'borderpad': 0.5,
+        'loc': 'upper left', 'ncol': 1, 'handlelength': 1.2, 'fancybox': False,
+        'framealpha': .9, 'fontsize': 10, 'labelspacing': 0.5, 'borderpad': 0.5,
         'handletextpad': 0.5, 'borderaxespad': 0.2, 'columnspacing': 0.8,
         # 'bbox_to_anchor': (0., 0.85)
     },
@@ -197,8 +197,11 @@ if __name__ == '__main__':
         ax = ax_arr[0]
         plt.sca(ax)
         # ax.set_xscale('log', basex=2)
-        plt.grid(True, which='both', axis='y', alpha=0.5)
-        plt.grid(False, which='major', axis='x')
+        plt.grid(axis='y', zorder=0, alpha=0.75)
+        plt.gca().set_axisbelow(True)
+
+        # plt.grid(True, which='both', axis='y', alpha=0.9)
+        # plt.grid(False, which='major', axis='x')
         plt.title('{} Particles'.format(
             human_format(int(n_points))), **plotconf['title'])
 
@@ -235,6 +238,8 @@ if __name__ == '__main__':
                          # marker=plotconf['markers'][idx],
                          # color=plotconf['colors'][idx],
                          yerr=yerr,
+                         linewidth=1,
+                         # linestyle='--',
                          capsize=2,
                          zorder=1)
             if exe in plotconf['annotate_exe']:

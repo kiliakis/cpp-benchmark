@@ -11,27 +11,37 @@ print('\nCpp simulation\n')
 
 project_dir = '/afs/cern.ch/work/k/kiliakis/git/cpp-benchmark/random_generators/'
 exe_dir = project_dir + 'build/exe/'
-exe_list = [
+# exe_list = [
     # 'synch_rad1',
     # 'synch_rad2',
     # 'synch_rad3',
-    'synch_rad4',
+    # 'synch_rad4',
     # 'synch_rad5',
-    'synch_rad6',
+    # 'synch_rad6',
     # 'synch_rad7',
     # 'synch_rad8',
     # 'synch_rad9'
+    # ]
+
+exe_list = [
+    'random_synch_rad1',
+    'random_synch_rad2',
+    'random_synch_rad4',
+    'random_synch_rad6',
     ]
 
+
 #datafiles = '/afs/cern.ch/work/k/kiliakis/workspace/BLonD-minimal-cpp/Release/'
-outfiles = project_dir + 'results/raw/synch_rad_test/'
+outfiles = project_dir + 'results/raw/ranomness_test/'
 
-n_iterations_list = ['100']
-n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000']
+n_iterations_list = ['1000']
+# n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000']
+n_points_list = ['1000000']
 # n_points_list = ['16000000']
-n_threads_list = ['1', '4', '8', '14', '28']
+# n_threads_list = ['1', '4', '8', '14', '28']
+n_threads_list = ['28']
 
-repeats = 10
+repeats = 1
 os.chdir(exe_dir)
 total_sims = len(n_iterations_list) * len(n_points_list) * \
     len(n_threads_list) * len(exe_list) * repeats
@@ -39,7 +49,7 @@ total_sims = len(n_iterations_list) * len(n_points_list) * \
 current_sim = 0
 for n_iterations in n_iterations_list:
     for n_points in n_points_list:
-        for n_threads in n_threads_list:
+        for n_threads in n_threads_list: 
             os.environ['OMP_NUM_THREADS'] = str(n_threads)
             for exe in exe_list:
                 name = '{}-n_p{}-n_i{}-n_thr{}'.format(exe, n_points, n_iterations, n_threads)
