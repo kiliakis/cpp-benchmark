@@ -12,6 +12,7 @@
 #include <thread>
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
+#include <omp.h>
 
 // #include <boost/random.hpp>
 // #include <boost/random/normal_distribution.hpp>
@@ -30,20 +31,32 @@ int main(int argc, char *argv[])
     parse_args(argc, argv);
     omp_set_num_threads(N_threads);
     std::hash<std::thread::id> hash;
+    
+    ofstream files[N_threads];
+    for (int i = 0; i < N_threads; ++i) {
+        files[i].open(prog_name+"_"+std::to_string(i) + "_numbers.txt");
+    }
 
     for (int i = 0; i < N_t; i++) {
         #pragma omp parallel
         {
-            static __thread ofstream file(prog_name+"_"+std::to_string(omp_get_thread_num()) + "_numbers.txt");
+            int tid = omp_get_thread_num();
+            // __thread ofstream file(prog_name+"_"+std::to_string(tid) + "_numbers.txt");
+            // static __thread ofstream file(prog_name+"_"+std::to_string(tid) + "_numbers.txt");
             static __thread mt19937_64 *gen = nullptr;
             if(!gen) gen = new mt19937_64(clock() + hash(this_thread::get_id()));    
             static __thread std::normal_distribution<> dist(0.0, 1.0);
             #pragma omp for
             for (int j = 0; j < N_p; ++j) {
-                file << dist(*gen) << "\n";
+                files[tid] << dist(*gen) << "\n";
             }
         }
     }
+
+    for (int i = 0; i < N_threads; ++i) {
+        files[i].close();
+    }
+
 
     return 0;
 }
