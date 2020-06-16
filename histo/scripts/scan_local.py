@@ -19,13 +19,6 @@ exe_list = [
     'smooth_histo4',
     ]
 
-exe_list = [
-    'randomtest_synch_rad1',
-    'randomtest_synch_rad2',
-    'randomtest_synch_rad4',
-    'randomtest_synch_rad6',
-    ]
-
 
 #datafiles = '/afs/cern.ch/work/k/kiliakis/workspace/BLonD-minimal-cpp/Release/'
 outfiles = project_dir + 'results/raw/perftest/'
