@@ -17,7 +17,7 @@ def string_between(string, before, after):
 
 
 def extract_results(input, out):
-    header = ['exe', 'n_threads', 'n_points', 'n_iterations',
+    header = ['exe', 'n_threads', 'n_points', 'n_slices', 'n_iterations',
               'time', 'stdev']
     records = []
     for dirs, subdirs, files in os.walk(input):
@@ -28,13 +28,14 @@ def extract_results(input, out):
             threads = string_between(file, 'n_thr', '.')
             points = string_between(file, 'n_p', '-')
             iters = string_between(file, 'n_i', '-')
+            slices = string_between(file, 'n_s', '-')
             exe = string_between(file, '', '-')
             for line in open(os.path.join(dirs, file), 'r'):
                 if 'Elapsed time' in line:
                     temp = string_between(line, ':', 'sec')
                     l.append(float(temp.strip()))
             if l:
-                records.append([exe, threads, points, iters,
+                records.append([exe, threads, points, slices, iters,
                                 np.mean(l), np.std(l)])
                 print(file)
                 percent = 100.0 * np.std(l) / np.mean(l)

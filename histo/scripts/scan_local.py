@@ -15,7 +15,7 @@ exe_dir = project_dir + 'build/exe/'
 exe_list = [
     'smooth_histo1',
     'smooth_histo2',
-    'smooth_histo3',
+    # 'smooth_histo3',
     'smooth_histo4',
     ]
 
