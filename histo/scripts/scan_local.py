@@ -46,7 +46,7 @@ total_sims = len(n_iterations_list) * len(n_points_list) * \
 current_sim = 0
 for n_iterations in n_iterations_list:
     for n_points in n_points_list:
-        n_slices = str(int(n_points / 1000))
+        n_slices = str(int(n_points) // 1000)
         for n_threads in n_threads_list: 
             os.environ['OMP_NUM_THREADS'] = str(n_threads)
             for exe in exe_list:
