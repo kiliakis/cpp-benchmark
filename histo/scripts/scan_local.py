@@ -24,11 +24,11 @@ exe_list = [
 outfiles = project_dir + 'results/raw/perftest/'
 
 n_iterations_list = ['1000']
-n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000']
+n_points_list = ['2000000', '4000000', '8000000', '16000000']
 # n__list = ['1000000', '2000000', '4000000', '8000000', '16000000']
 # n_points_list = ['1000000']
 # n_points_list = ['16000000']
-n_threads_list = ['8', '14', '28']
+n_threads_list = ['1', '2', '8', '14', '28']
 # n_threads_list = ['4']
 
 repeats = 4
@@ -43,6 +43,8 @@ for n_iterations in n_iterations_list:
         for n_threads in n_threads_list: 
             os.environ['OMP_NUM_THREADS'] = str(n_threads)
             for exe in exe_list:
+                if exe in ['smooth_histo1', 'smooth_histo2'] and int(n_threads) > 1:
+                    continue
                 name = '{}-n_p{}-n_s{}-n_i{}-n_thr{}'.format(exe, n_points, n_slices, n_iterations, n_threads)
                 if not os.path.exists(outfiles):
                     os.makedirs(outfiles)
