@@ -50,28 +50,26 @@ gconfig = {
 }
 
 label_d = {
-    'synch_rad1': 'std, seq, sep',
-    'synch_rad2': 'boost, seq, sep',
-    'synch_rad3': 'std, par, sep',
-    'synch_rad4': 'std, par, single',
-    'synch_rad5': 'boost, par, sep',
-    'synch_rad6': 'boost, par, single',
-    'synch_rad7': 'std, par, single, vec',
-    'synch_rad8': 'boost, par, single, vec',
-    'synch_rad9': 'boost, par, single, vec, opt',
+    'smooth_histo1': 'smooth-orig',
+    'smooth_histo4': 'smooth-opt',
+    # 'histo': '',
+    # 'synch_rad4': 'std, par, single',
+    # 'synch_rad5': 'boost, par, sep',
+    # 'synch_rad6': 'boost, par, single',
+    # 'synch_rad7': 'std, par, single, vec',
+    # 'synch_rad8': 'boost, par, single, vec',
+    # 'synch_rad9': 'boost, par, single, vec, opt',
 }
 
 lconfig = {
     'figures': {
         'strong': {
             'files': [
-                '{}/csv/synch_rad_test2.csv',
+                '{}/csv/perftest.csv',
             ],
             'lines': {
-                'exe': ['synch_rad1', 'synch_rad2', 'synch_rad3', 'synch_rad4',
-                        'synch_rad5', 'synch_rad6', 'synch_rad7', 'synch_rad8',
-                        'synch_rad9'],
-                'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000'],
+                'exe': ['smooth_histo1', 'smooth_histo4'],
+                'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000'],
             }
         },
     },

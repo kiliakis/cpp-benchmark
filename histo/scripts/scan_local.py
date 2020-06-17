@@ -13,10 +13,12 @@ this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 project_dir = this_directory + '../'
 exe_dir = project_dir + 'build/exe/'
 exe_list = [
-    'smooth_histo1',
-    'smooth_histo2',
+    # 'smooth_histo1',
+    # 'smooth_histo2',
     # 'smooth_histo3',
-    'smooth_histo4',
+    # 'smooth_histo4',
+    'smooth_histo5',
+    'histo1',
     ]
 
 
@@ -24,7 +26,7 @@ exe_list = [
 outfiles = project_dir + 'results/raw/perftest/'
 
 n_iterations_list = ['1000']
-n_points_list = ['2000000', '4000000', '8000000', '16000000']
+n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000']
 # n__list = ['1000000', '2000000', '4000000', '8000000', '16000000']
 # n_points_list = ['1000000']
 # n_points_list = ['16000000']
