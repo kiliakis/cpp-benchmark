@@ -13,18 +13,19 @@ this_directory = os.path.dirname(os.path.realpath(__file__)) + "/"
 project_dir = this_directory + '../'
 exe_dir = project_dir + 'build/exe/'
 exe_list = [
-    # 'smooth_histo1',
+    'smooth_histo1',
     # 'smooth_histo2',
     # 'smooth_histo3',
     # 'smooth_histo4',
     # 'smooth_histo5',
-    # 'histo1',
+    'smooth_histo6',
+    'histo1',
     'histo2',
     ]
 
 
 #datafiles = '/afs/cern.ch/work/k/kiliakis/workspace/BLonD-minimal-cpp/Release/'
-outfiles = project_dir + 'results/raw/perftest/'
+outfiles = project_dir + 'results/raw/perftest2/'
 
 n_iterations_list = ['1000']
 # n_points_list = ['1000000', '2000000', '4000000', '8000000', '16000000']
@@ -32,7 +33,7 @@ n_points_list = ['2000000', '16000000']
 # n__list = ['1000000', '2000000', '4000000', '8000000', '16000000']
 # n_points_list = ['1000000']
 # n_points_list = ['16000000']
-n_threads_list = ['1', '2', '8', '14', '28']
+n_threads_list = ['1', '2', '4', '8', '14']
 # n_threads_list = ['4']
 
 repeats = 4

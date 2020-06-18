@@ -56,7 +56,7 @@ extern "C" void histogram(const double *__restrict__ input,
         // float fbin[STEP];
         #pragma omp for
         for (int i = 0; i < n_macroparticles; i ++) {
-            int bin = floor((input[i + j] - cut_left) * inv_bin_width);
+            int bin = floor((input[i] - cut_left) * inv_bin_width);
             if (bin < 0 || bin >= n_slices) continue;
             histo[id][bin] += 1.0;
             // const int loop_count = n_macroparticles - i > STEP ?
@@ -178,7 +178,7 @@ void parse_args(int argc, char **argv)
             "  --turns=<num>,       -t <num>  Number of turns (default: 500)"
         },
         {
-            N_SLICES, 0, "k", "N_SLICES", util::Arg::Numeric,
+            N_SLICES, 0, "s", "slices", util::Arg::Numeric,
             "  --slices=<num>,       -s <num>  Number of slices (default: 100)"
         },
         {

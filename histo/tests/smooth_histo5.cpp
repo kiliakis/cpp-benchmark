@@ -181,7 +181,7 @@ void parse_args(int argc, char **argv)
             "  --turns=<num>,       -t <num>  Number of turns (default: 500)"
         },
         {
-            N_SLICES, 0, "k", "N_SLICES", util::Arg::Numeric,
+            N_SLICES, 0, "s", "slices", util::Arg::Numeric,
             "  --slices=<num>,       -s <num>  Number of slices (default: 100)"
         },
         {
