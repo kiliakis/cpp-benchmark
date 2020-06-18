@@ -41,7 +41,7 @@ if not os.path.exists(images_dir):
 
 gconfig = {
     'x_name': 'n_threads',
-    'x_to_keep': [1, 4, 8, 14, 28],
+    'x_to_keep': [1, 2, 8, 14, 28],
     'y_name': 'time',
     'y_err_name': 'stdev',
     'fontname': 'DejaVu Sans Mono',
@@ -69,32 +69,25 @@ lconfig = {
             ],
             'lines': {
                 'exe': ['smooth_histo1', 'smooth_histo4'],
-                'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000'],
+                'n_points': ['1000000', '4000000', '16000000'],
             }
         },
     },
 }
 
 tabconf = {
-    'exe': ['synch_rad1', 'synch_rad2', 'synch_rad3', 'synch_rad4',
-            'synch_rad5', 'synch_rad6', 'synch_rad7', 'synch_rad8', 'synch_rad9'],
+    'exe': ['smooth_histo1', 'smooth_histo4'],
     'n_points': '16000000',
-    'outfile': '{}/test1/table2.csv'
+    'outfile': '{}/table2.csv'
 }
 
 plotconf = {
-    'annotate_exe': ['synch_rad6', 'synch_rad4'],
-    'exe': ['synch_rad1', 'synch_rad2', 'synch_rad4',
-            # 'synch_rad3', ,
-            # 'synch_rad5',
-            'synch_rad6',
-            # 'synch_rad9',
-            # 'synch_rad8'
-            ],
+    'annotate_exe': ['smooth_histo1', 'smooth_histo4'],
+    'exe': ['smooth_histo1', 'smooth_histo4'],
     # 'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000'],
     'n_points': ['16000000'],
-    'outfiles': ['{}/test1/n_p{}scalability2.png',
-                 '{}/test1/n_p{}scalability2.pdf'],
+    'outfiles': ['{}/n_p{}scalability2.png',
+                 '{}/n_p{}scalability2.pdf'],
     'ylim': [0, 36],
     # 'xlim': [, 36],
     'yticks': [4, 8, 12, 16, 20, 24, 28, 32],
@@ -185,90 +178,74 @@ if __name__ == '__main__':
     print(str, file=open(tabconf['outfile'].format(images_dir), 'w'))
     # sys.exit()
 
-    for n_points in plotconf['n_points']:
-        fig, ax_arr = plt.subplots(ncols=1, nrows=1,
-                                   sharex=True, sharey=True,
-                                   figsize=plotconf['figsize'])
-        ax_arr = np.atleast_1d(ax_arr)
-        labels = set()
-        # for col, case in enumerate(args.cases):
-        ax = ax_arr[0]
-        plt.sca(ax)
-        # ax.set_xscale('log', basex=2)
-        plt.grid(axis='y', zorder=0, alpha=0.75)
-        plt.gca().set_axisbelow(True)
+    fig, ax_arr = plt.subplots(ncols=1, nrows=1,
+                               sharex=True, sharey=True,
+                               figsize=plotconf['figsize'])
+    for key, values in plots_dir.items():
+        exe = key.split('exe')[1].split('_n_points')[0]
+        n_points = key.split('n_points')[1].split('_')[0]
+       
 
-        # plt.grid(True, which='both', axis='y', alpha=0.9)
-        # plt.grid(False, which='major', axis='x')
-        plt.title('{} Particles'.format(
-            human_format(int(n_points))), **plotconf['title'])
+        label = label_d[exe]
+        # label = exe
 
-        plt.xlabel(plotconf['xlabel'], labelpad=3,
-                   fontsize=plotconf['fontsize'])
-        plt.ylabel(plotconf['ylabel'], labelpad=3,
-                   fontsize=plotconf['fontsize'])
+        x = get_values(values, header, gconfig['x_name'])
+        y = get_values(values, header, gconfig['y_name'])
+        yerr = get_values(values, header, gconfig['y_err_name'])
+        if len(x) == 1:
+            x = np.array([x[0]] * len(gconfig['x_to_keep']))
+            y = np.array([y[0]] * len(gconfig['x_to_keep']))
+            yerr = np.array([yerr[0]] * len(gconfig['x_to_keep']))
+        yerr = yerr / y
+        y = int(n_points) * 100 / y
+        yerr = y * yerr
 
-        # pos = 0
-        # step = 0.1
-        # width = 1. / (1*len(plots_dir.keys())+0.4)
+        # speedup = y / yref
+        # yerr = yerr / yref
 
-        for idx, key in enumerate(plots_dir.keys()):
-            exe = key.split('exe')[1].split('_n_points')[0]
-            if exe not in plotconf['exe'] or n_points != key.split('n_points')[1].split('_')[0]:
-                continue
-            values = plots_dir[key]
+        plt.errorbar(np.arange(len(x)), y,
+                     label=label,
+                     # marker=plotconf['markers'][idx],
+                     # color=plotconf['colors'][idx],
+                     yerr=yerr,
+                     linewidth=1,
+                     # linestyle='--',
+                     capsize=2,
+                     zorder=1)
+        if exe in plotconf['annotate_exe']:
+            for xi, yi in zip(np.arange(len(x)), y):
+                plt.gca().annotate(r'\bfseries {:.1f}x'.format(yi/y[0]), xy=(xi, yi+0.4),
+                            **plotconf['annotate'],
+                            zorder=2)
+    
+    plt.grid(axis='y', zorder=0, alpha=0.75)
+    plt.gca().set_axisbelow(True)
 
-            label = label_d[exe]
-            # label = exe
+    # plt.grid(True, which='both', axis='y', alpha=0.9)
+    # plt.grid(False, which='major', axis='x')
+    # plt.title('{} Particles'.format(
+    #     human_format(int(n_points))), **plotconf['title'])
 
-            x = get_values(values, header, gconfig['x_name'])
-            y = get_values(values, header, gconfig['y_name'])
-            yerr = get_values(values, header, gconfig['y_err_name'])
-            yerr = yerr / y
-            y = int(n_points) * 100 / y
-            yerr = y * yerr
+    plt.xlabel(plotconf['xlabel'], labelpad=3,
+               fontsize=plotconf['fontsize'])
+    plt.ylabel(plotconf['ylabel'], labelpad=3,
+               fontsize=plotconf['fontsize'])
+    plt.xticks(np.arange(len(x)), np.array(
+        x, dtype=int), **plotconf['ticks'])
 
-            # speedup = y / yref
-            # yerr = yerr / yref
+    plt.gca().tick_params(**plotconf['tick_params'])
 
-            plt.errorbar(np.arange(len(x)), y,
-                         label=label,
-                         # marker=plotconf['markers'][idx],
-                         # color=plotconf['colors'][idx],
-                         yerr=yerr,
-                         linewidth=1,
-                         # linestyle='--',
-                         capsize=2,
-                         zorder=1)
-            if exe in plotconf['annotate_exe']:
-                for xi, yi in zip(np.arange(len(x)), y):
-                    ax.annotate(r'\bfseries {:.1f}x'.format(yi/y[0]), xy=(xi, yi+0.4),
-                                **plotconf['annotate'],
-                                zorder=2)
-            # print("{}:{}:".format(case, label), end='\t')
-            # for xi, yi, yeri in zip(x//20, speedup, yerr):
-            # print('N:{:.0f} {:.2f}±{:.2f}'.format(xi, yi, yeri), end=' ')
-            # print('')
-            # print("{}:{}:".format(case, label), speedup)
-            # pos += width * step
-        # plt.ylim(plotconf['ylim'])
-        # plt.xlim(plotconf['xlim'])
-        plt.xticks(np.arange(len(x)), np.array(
-            x, dtype=int), **plotconf['ticks'])
+    plt.gca().legend(**plotconf['legend'])
 
-        ax.tick_params(**plotconf['tick_params'])
+    plt.xticks(**plotconf['ticks'])
+    plt.yticks(**plotconf['ticks'])
+    # plt.yticks(plotconf['yticks'], plotconf['yticks'], **plotconf['ticks'])
 
-        ax.legend(**plotconf['legend'])
-
-        plt.xticks(**plotconf['ticks'])
-        plt.yticks(**plotconf['ticks'])
-        # plt.yticks(plotconf['yticks'], plotconf['yticks'], **plotconf['ticks'])
-
-        plt.tight_layout()
-        plt.subplots_adjust(**plotconf['subplots_adjust'])
-        for file in plotconf['outfiles']:
-            file = file.format(images_dir, human_format(int(n_points)))
-            save_and_crop(fig, file, dpi=600, bbox_inches='tight')
-        if args.show:
-            plt.show()
-        plt.close()
+    plt.tight_layout()
+    plt.subplots_adjust(**plotconf['subplots_adjust'])
+    for file in plotconf['outfiles']:
+        file = file.format(images_dir, human_format(int(n_points)))
+        save_and_crop(fig, file, dpi=300, bbox_inches='tight')
+    if args.show:
+        plt.show()
+    plt.close()
