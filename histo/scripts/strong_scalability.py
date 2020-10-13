@@ -41,7 +41,7 @@ if not os.path.exists(images_dir):
 
 gconfig = {
     'x_name': 'n_threads',
-    'x_to_keep': [1, 2, 8, 14, 28],
+    'x_to_keep': [1, 2, 4, 8, 14],
     'y_name': 'time',
     'y_err_name': 'stdev',
     'fontname': 'DejaVu Sans Mono',
@@ -51,7 +51,8 @@ gconfig = {
 
 label_d = {
     'smooth_histo1': 'smooth-orig',
-    'smooth_histo4': 'smooth-opt',
+    'smooth_histo6': 'smooth-opt',
+    'histo1': 'non-smooth-opt',
     # 'histo': '',
     # 'synch_rad4': 'std, par, single',
     # 'synch_rad5': 'boost, par, sep',
@@ -65,25 +66,25 @@ lconfig = {
     'figures': {
         'strong': {
             'files': [
-                '{}/csv/perftest.csv',
+                '{}/csv/perftest2.csv',
             ],
             'lines': {
-                'exe': ['smooth_histo1', 'smooth_histo4'],
-                'n_points': ['1000000', '4000000', '16000000'],
+                'exe': ['smooth_histo1', 'smooth_histo6', 'histo1'],
+                'n_points': ['16000000'],
             }
         },
     },
 }
 
 tabconf = {
-    'exe': ['smooth_histo1', 'smooth_histo4'],
+    'exe': ['smooth_histo1', 'smooth_histo6', 'histo1'],
     'n_points': '16000000',
     'outfile': '{}/table2.csv'
 }
 
 plotconf = {
-    'annotate_exe': ['smooth_histo1', 'smooth_histo4'],
-    'exe': ['smooth_histo1', 'smooth_histo4'],
+    'annotate_exe': ['smooth_histo6', 'histo1'],
+    'exe': ['smooth_histo1', 'smooth_histo6', 'histo1'],
     # 'n_points': ['1000000', '2000000', '4000000', '8000000', '16000000', '32000000'],
     'n_points': ['16000000'],
     'outfiles': ['{}/n_p{}scalability2.png',
@@ -91,7 +92,7 @@ plotconf = {
     'ylim': [0, 36],
     # 'xlim': [, 36],
     'yticks': [4, 8, 12, 16, 20, 24, 28, 32],
-    'figsize': [5, 3],
+    'figsize': [5, 4.5],
     'hatches': ['', '', 'xx'],
     'markers': ['x', 'o', '^'],
     'colors': ['xkcd:red', 'xkcd:green', 'xkcd:blue'],
